@@ -1,0 +1,6 @@
+{
+  "name": "Ecos de Tamarán: El Cuaderno del Tiempo",
+  "description": "Juego educativo tipo escape room sobre la historia de Gran Canaria para 2.º y 3.º ciclo de Educación Primaria (Currículo de Canarias LOMLOE y EMOCREA), con enigmas históricos, dilemas de empatía, pensamiento crítico y diario de reflexión.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

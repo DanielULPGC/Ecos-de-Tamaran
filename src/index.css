@@ -1,0 +1,363 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-desk: #171B21;
+  --color-ink: #232A34;
+  --color-paper: #F5F3EE;
+  --color-linen: #E9E5DC;
+  --color-atlantic: #1D4E89;
+  --color-atlantic-dark: #153A68;
+  --color-ochre: #C67D1E;
+  --color-ochre-soft: #F6EAD7;
+  --color-laurel: #2A6F4E;
+  --color-laurel-soft: #E1EFE8;
+  --color-clay: #A43D2F;
+  --color-clay-soft: #F8E5E2;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid #C67D1E;
+    outline-offset: 2px;
+  }
+}
+
+@keyframes gentle-pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  70% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+.hotspot-ring {
+  animation: gentle-pulse-ring 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(82vh) rotate(520deg);
+    opacity: 0;
+  }
+}
+
+@keyframes celebration-pop {
+  0% {
+    transform: translateY(-14px) scale(0.94);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.confetti-piece {
+  animation: confetti-fall 1.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.celebration-pop {
+  animation: celebration-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes honor-sheen-sweep {
+  0% {
+    transform: translateX(-140%) skewX(-22deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.92;
+  }
+  65% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(260%) skewX(-22deg);
+    opacity: 0;
+  }
+}
+
+@keyframes honor-halo-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.995);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.012);
+  }
+}
+
+@keyframes honor-unlock-lift {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.7;
+  }
+  60% {
+    transform: scale(1.015);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.honor-sheen-layer {
+  animation: honor-sheen-sweep 1.5s cubic-bezier(0.16, 1, 0.3, 1) 2;
+}
+
+.honor-sheen-once {
+  animation: honor-sheen-sweep 1.25s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+}
+
+.honor-halo-layer {
+  animation: honor-halo-glow 2.1s cubic-bezier(0.16, 1, 0.3, 1) 3;
+}
+
+.honor-unlock-lift {
+  animation: honor-unlock-lift 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes reaction-joy-bounce {
+  0% {
+    transform: translateY(0) scale(0.95);
+  }
+  35% {
+    transform: translateY(-6px) scale(1.06);
+  }
+  65% {
+    transform: translateY(1px) scale(0.99);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes reaction-surprise-pop {
+  0% {
+    transform: scale(0.92) rotate(-2deg);
+  }
+  45% {
+    transform: scale(1.08) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes reaction-focus-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.025);
+  }
+}
+
+@keyframes reaction-retry-wobble {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  20% {
+    transform: translateX(-3px) rotate(-3deg);
+  }
+  45% {
+    transform: translateX(3px) rotate(3deg);
+  }
+  70% {
+    transform: translateX(-2px) rotate(-1.5deg);
+  }
+}
+
+.reaction-joy-bounce {
+  animation: reaction-joy-bounce 0.55s cubic-bezier(0.16, 1, 0.3, 1) 1;
+}
+
+.reaction-surprise-pop {
+  animation: reaction-surprise-pop 0.42s cubic-bezier(0.16, 1, 0.3, 1) 1;
+}
+
+.reaction-focus-breathe {
+  animation: reaction-focus-breathe 2.2s ease-in-out 1;
+}
+
+.reaction-retry-wobble {
+  animation: reaction-retry-wobble 0.45s ease-in-out 1;
+}
+
+@keyframes badge-medal-pop {
+  0% {
+    transform: scale(0.72) rotate(-14deg);
+    opacity: 0.25;
+  }
+  55% {
+    transform: scale(1.14) rotate(6deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.96) rotate(-2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes badge-ring-burst {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+}
+
+@keyframes badge-spark-float {
+  0% {
+    transform: translateY(4px) scale(0.6);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px) scale(1.05);
+    opacity: 0;
+  }
+}
+
+.badge-medal-pop {
+  animation: badge-medal-pop 0.56s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.badge-ring-burst {
+  animation: badge-ring-burst 0.85s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+}
+
+.badge-spark-float {
+  animation: badge-spark-float 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hotspot-ring,
+  .confetti-piece,
+  .celebration-pop,
+  .honor-sheen-layer,
+  .honor-sheen-once,
+  .honor-halo-layer,
+  .honor-unlock-lift,
+  .reaction-joy-bounce,
+  .reaction-surprise-pop,
+  .reaction-focus-breathe,
+  .reaction-retry-wobble,
+  .badge-medal-pop,
+  .badge-ring-burst,
+  .badge-spark-float {
+    animation: none;
+  }
+
+  .hotspot-ring,
+  .confetti-piece,
+  .honor-sheen-layer,
+  .honor-sheen-once,
+  .badge-ring-burst,
+  .badge-spark-float {
+    opacity: 0;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* DUA Accessibility Modes */
+.dua-dyslexia,
+.dua-dyslexia * {
+  font-family: "Plus Jakarta Sans", Verdana, Arial, sans-serif !important;
+  letter-spacing: 0.045em;
+  word-spacing: 0.14em;
+  line-height: 1.7;
+}
+
+.dua-high-contrast button,
+.dua-high-contrast input,
+.dua-high-contrast textarea {
+  border-width: 2px !important;
+}
+
+.dua-high-contrast [role="dialog"] > div {
+  background-color: #ffffff !important;
+  color: #0b0e13 !important;
+  border-color: #0b0e13 !important;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #1c222b !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-surface {
+    background: #ffffff !important;
+    color: #1c222b !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
