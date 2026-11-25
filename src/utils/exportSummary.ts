@@ -1,5 +1,7 @@
 import { CycleId, JournalEntry, RoomEmotionCheck, RoomId } from '../types/game';
 import { getMoodById } from '../data/enrichmentData';
+import { getDifficultyProfile } from '../data/difficultyConfig';
+import { formatEscapeTime } from '../data/escapeLocks';
 
 function escapeHtml(text: string): string {
   return text
@@ -10,22 +12,53 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#39;');
 }
 
+export interface ReflectionReportMeta {
+  doorsUnlocked?: number;
+  badgesUnlocked?: number;
+  badgesTotal?: number;
+  elapsedSeconds?: number;
+  showEscapeTimer?: boolean;
+}
+
 export function downloadReflectionReport(
   explorerName: string,
   cycle: CycleId,
   entries: JournalEntry[],
-  emotions?: Partial<Record<RoomId, RoomEmotionCheck>>
+  emotions?: Partial<Record<RoomId, RoomEmotionCheck>>,
+  meta?: ReflectionReportMeta
 ) {
   const safeName = explorerName.trim() || 'Equipo Explorador de Tamarán';
+  const difficulty = getDifficultyProfile(cycle);
   const cycleLabel =
     cycle === 'ciclo2'
-      ? '2.º Ciclo de Educación Primaria (3.º y 4.º)'
-      : '3.º Ciclo de Educación Primaria (5.º y 6.º)';
+      ? `${difficulty.levelName} · 2.º Ciclo de Educación Primaria (3.º y 4.º)`
+      : `${difficulty.levelName} · 3.º Ciclo de Educación Primaria (5.º y 6.º)`;
   const today = new Date().toLocaleDateString('es-ES', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   });
+
+  const escapeStatsParts: string[] = [];
+  if (typeof meta?.doorsUnlocked === 'number') {
+    escapeStatsParts.push(`<strong>Cerrojos abiertos:</strong> ${meta.doorsUnlocked}/4`);
+  }
+  if (typeof meta?.badgesUnlocked === 'number' && typeof meta?.badgesTotal === 'number') {
+    escapeStatsParts.push(
+      `<strong>Insignias:</strong> ${meta.badgesUnlocked}/${meta.badgesTotal}`
+    );
+  }
+  if (meta?.showEscapeTimer && typeof meta.elapsedSeconds === 'number' && meta.elapsedSeconds > 0) {
+    escapeStatsParts.push(
+      `<strong>Tiempo Escape Room:</strong> ${escapeHtml(formatEscapeTime(meta.elapsedSeconds))}`
+    );
+  }
+  const escapeStatsHtml =
+    escapeStatsParts.length > 0
+      ? `<div style="margin-top: 6px; font-size: 13px; color: #1d4e89;">${escapeStatsParts.join(
+          ' &nbsp;·&nbsp; '
+        )}</div>`
+      : '';
 
   const entriesHtml = entries
     .map((entry, index) => {
@@ -90,6 +123,7 @@ export function downloadReflectionReport(
       <strong>Nivel:</strong> ${escapeHtml(cycleLabel)} &nbsp;·&nbsp;
       <strong>Fecha:</strong> ${escapeHtml(today)}
     </div>
+    ${escapeStatsHtml}
   </header>
   ${entriesHtml}
   <footer style="margin-top: 28px; padding-top: 14px; border-top: 1px solid #d6d1c4; font-size: 12px; color: #526071;">

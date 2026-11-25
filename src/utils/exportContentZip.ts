@@ -19,6 +19,8 @@ import { BADGES, EXPLORERS } from '../data/charactersAndBadges';
 import { SHADOW_CHALLENGES } from '../data/shadowMatchData';
 import { TIME_CAPSULES } from '../data/timeCapsules';
 import { HONOR_ACHIEVEMENTS } from '../data/honorAchievements';
+import { DIFFICULTY_PROFILES } from '../data/difficultyConfig';
+import { ROOM_EXIT_LOCKS } from '../data/escapeLocks';
 
 function escapeHtml(text: string): string {
   return text
@@ -337,6 +339,36 @@ function generateCurriculumHtml(): string {
 }
 
 function generateRoomsGuideHtml(): string {
+  const difficultyHtml = `
+    <section class="card">
+      <h2>Selector de Dificultad por Ciclo (2.º y 3.º de Primaria)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nivel y Ciclo</th>
+            <th>Puzle de Sombras</th>
+            <th>Pistas en Enigmas</th>
+            <th>Cerrojo de Salida</th>
+            <th>Taller de Murales</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(['ciclo2', 'ciclo3'] as const)
+            .map((cid) => {
+              const p = DIFFICULTY_PROFILES[cid];
+              return `<tr>
+                <td><strong>${escapeHtml(p.levelName)}</strong> (${escapeHtml(p.cycleLabel)} · ${escapeHtml(p.gradesLabel)})</td>
+                <td>${p.shadowPiecesCount} piezas (${p.shadowShowCardCue ? 'con pista visual fija' : 'observación pura'})</td>
+                <td>Hasta ${p.maxPuzzleHints} ayudas · ${escapeHtml(p.clueLengthLabel)}</td>
+                <td>3 cilindros × ${p.exitLockOptionsPerDial} opciones</td>
+                <td>${escapeHtml(p.jigsawDefaultLabel)}</td>
+              </tr>`;
+            })
+            .join('')}
+        </tbody>
+      </table>
+    </section>`;
+
   const explorersHtml = `
     <section class="card">
       <h2>Exploradores elegibles, poderes y hojas de desarrollo</h2>
@@ -361,6 +393,13 @@ function generateRoomsGuideHtml(): string {
   const roomsHtml = ROOMS_DATA.map((room) => {
     const flashQs = ASSEMBLY_FLASH_QUESTIONS[room.id] ?? [];
     const shadow = SHADOW_CHALLENGES[room.id];
+    const exitLock = ROOM_EXIT_LOCKS[room.id];
+    const lockKeysC2 = exitLock.dials.ciclo2
+      .map((d) => `${d.label}: ${d.options[d.correctIndex]}`)
+      .join(' · ');
+    const lockKeysC3 = exitLock.dials.ciclo3
+      .map((d) => `${d.label}: ${d.options[d.correctIndex]}`)
+      .join(' · ');
     return `
       <section class="card">
         <div class="meta">Sala ${room.number} · ${escapeHtml(
@@ -414,6 +453,12 @@ function generateRoomsGuideHtml(): string {
       room.empathy.voices[1].role
     )}): ${escapeHtml(room.empathy.voices[1].quote.ciclo3)}</li>
         </ul>
+        <h3>Cerrojo de Salida (Escape Room): ${escapeHtml(exitLock.lockName)}</h3>
+        <p><strong>${escapeHtml(exitLock.doorTitle)}</strong></p>
+        <ul>
+          <li><strong>Claves 2.º Ciclo (3 opciones/dial):</strong> ${escapeHtml(lockKeysC2)}</li>
+          <li><strong>Claves 3.º Ciclo (4 opciones/dial):</strong> ${escapeHtml(lockKeysC3)}</li>
+        </ul>
         <p><strong>Preguntas relámpago de Asamblea:</strong> ${flashQs
           .map((q) => escapeHtml(q))
           .join(' | ')}</p>
@@ -422,19 +467,23 @@ function generateRoomsGuideHtml(): string {
 
   const badgesHtml = `
     <section class="card">
-      <h2>10 Insignias Coleccionables</h2>
+      <h2>${BADGES.length} Insignias de Explorador</h2>
       <ul>${BADGES.map(
         (b) =>
-          `<li><strong>${escapeHtml(b.title)}</strong>: ${escapeHtml(
+          `<li><strong>${escapeHtml(b.title)}</strong> — ${escapeHtml(
             b.subtitle
-          )}</li>`
+          )}${
+            b.requirementDetail
+              ? ` <span class="meta">(${escapeHtml(b.requirementDetail)})</span>`
+              : ''
+          }</li>`
       ).join('')}</ul>
     </section>`;
 
   return wrapHtmlDoc(
-    'Guía Completa de las 4 Salas, Enigmas, Sombras y Personajes',
-    'Solucionario orientativo, voces históricas, hojas de desarrollo y dinámicas cooperativas para Primaria',
-    explorersHtml + roomsHtml + badgesHtml
+    'Guía Completa de las 4 Salas, Cerrojos, Dificultad y Personajes',
+    'Solucionario orientativo de enigmas y cerrojos de salida, niveles por ciclo, voces históricas y dinámicas cooperativas',
+    difficultyHtml + explorersHtml + roomsHtml + badgesHtml
   );
 }
 
@@ -556,7 +605,8 @@ export function downloadEducationalContentZip() {
     '',
     'Contenido incluido en este archivo ZIP:',
     '1. 01_Ficha_Docente_LOMLOE_y_Rubrica.html — Saberes básicos, criterios, rúbrica competencial de 4 niveles y notas de rigor histórico.',
-    '2. 02_Guia_Salas_Enigmas_Sombras_y_Personajes.html — Recorrido por las 4 salas, solucionario, Juego de Sombras, hojas de desarrollo y roles.',
+    '2. 02_Guia_Salas_Enigmas_Sombras_y_Personajes.html — Niveles de dificultad por ciclo, recorrido por las 4 salas, solucionario de enigmas y cerrojos de salida, Juego de Sombras, hojas de desarrollo y ' +
+      `${BADGES.length} insignias.`,
     '3. 03_Glosario_Unificado_Gran_Canaria.html — Diccionario histórico escolar A–Z (20 conceptos) y Glosario Visual con pictogramas (16 fichas).',
     '4. 04_Misiones_Transversales_Agenda_2030.html — 4 misiones transversales (Coeducación, DDHH, Bulos y ODS).',
     '5. 05_Album_Patrimonio_Capsulas_y_Honor.html — Tesoros del habla canaria, 4 Cápsulas del Tiempo y Muro de Honor.',

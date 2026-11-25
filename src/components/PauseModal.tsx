@@ -58,12 +58,15 @@ interface PauseModalProps {
   elapsedSeconds?: number;
   showEscapeTimer?: boolean;
   unlockedDoorRooms?: RoomId[];
+  accessibleRoomIndices?: number[];
+  teacherMode?: boolean;
   classroomUserEmail?: string | null;
   onResume: () => void;
   onChangeCycle: (cycle: CycleId) => void;
   onChangeExplorer: (id: ExplorerId) => void;
   onJumpToRoom: (roomIndex: number) => void;
   onToggleEscapeTimer: () => void;
+  onToggleTeacherMode: () => void;
   onToggleMute: () => void;
   onToggleVoiceAuto: () => void;
   onToggleAmbient: () => void;
@@ -105,12 +108,15 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   elapsedSeconds = 0,
   showEscapeTimer = true,
   unlockedDoorRooms = [],
+  accessibleRoomIndices = [0],
+  teacherMode = false,
   classroomUserEmail = null,
   onResume,
   onChangeCycle,
   onChangeExplorer,
   onJumpToRoom,
   onToggleEscapeTimer,
+  onToggleTeacherMode,
   onToggleMute,
   onToggleVoiceAuto,
   onToggleAmbient,
@@ -263,48 +269,90 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             </div>
           </div>
 
-          {/* Classroom quick-jump with escape lock status */}
+          {/* Escape Room sequential progression with optional Teacher Mode unlock */}
           <div>
-            <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <span className="text-xs font-bold text-[#526071]">
-                Salas del Escape Room (acceso docente)
+                Salas del Escape Room
               </span>
-              <button
-                type="button"
-                onClick={onToggleEscapeTimer}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1D4E89] hover:underline cursor-pointer"
-              >
-                <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>
-                  {showEscapeTimer ? 'Ocultar cronómetro' : 'Mostrar cronómetro'}
-                </span>
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={teacherMode}
+                  onClick={onToggleTeacherMode}
+                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-bold transition-colors cursor-pointer ${
+                    teacherMode
+                      ? 'border-[#C67D1E] bg-[#FAF4E8] text-[#8A5410]'
+                      : 'border-[#232A34]/18 bg-white text-[#526071] hover:border-[#1D4E89]'
+                  }`}
+                >
+                  {teacherMode ? (
+                    <LockOpen className="h-3 w-3" aria-hidden="true" />
+                  ) : (
+                    <Lock className="h-3 w-3" aria-hidden="true" />
+                  )}
+                  <span>
+                    {teacherMode ? 'Modo docente: Activo' : 'Modo docente'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onToggleEscapeTimer}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1D4E89] hover:underline cursor-pointer"
+                >
+                  <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>
+                    {showEscapeTimer ? 'Ocultar cronómetro' : 'Mostrar cronómetro'}
+                  </span>
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               {ROOMS_DATA.map((room, idx) => {
                 const escaped = unlockedDoorRooms.includes(room.id);
+                const accessible =
+                  teacherMode || accessibleRoomIndices.includes(idx);
                 return (
                   <button
                     key={room.id}
                     type="button"
-                    onClick={() => onJumpToRoom(idx)}
-                    className={`rounded-lg border px-3 py-2 text-left text-xs transition-colors cursor-pointer ${
-                      idx === currentRoomIndex
-                        ? 'border-[#1D4E89] bg-[#E8F0FA] font-semibold text-[#171B21]'
-                        : 'border-[#232A34]/15 bg-white text-[#3E4856] hover:border-[#1D4E89]'
+                    disabled={!accessible}
+                    onClick={() => accessible && onJumpToRoom(idx)}
+                    title={
+                      accessible
+                        ? `Ir a Sala ${room.number}: ${room.epoch}`
+                        : `Abre primero el cerrojo de la Sala ${idx} o activa el Modo docente`
+                    }
+                    className={`rounded-lg border px-3 py-2 text-left text-xs transition-colors ${
+                      !accessible
+                        ? 'border-[#232A34]/10 bg-[#EAE6DC]/75 text-[#7A8390] opacity-70 cursor-not-allowed'
+                        : idx === currentRoomIndex
+                        ? 'border-[#1D4E89] bg-[#E8F0FA] font-semibold text-[#171B21] cursor-pointer'
+                        : 'border-[#232A34]/15 bg-white text-[#3E4856] hover:border-[#1D4E89] cursor-pointer'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-1 font-mono text-[11px] text-[#1D4E89] tabular-nums">
-                      <span>Sala {room.number}</span>
+                    <div className="flex items-center justify-between gap-1 font-mono text-[11px] tabular-nums">
+                      <span
+                        className={
+                          accessible ? 'text-[#1D4E89]' : 'text-[#7A8390]'
+                        }
+                      >
+                        Sala {room.number}
+                      </span>
                       {escaped ? (
                         <LockOpen
                           className="h-3.5 w-3.5 text-[#2A6F4E]"
                           aria-label="Cerrojo abierto"
                         />
+                      ) : accessible ? (
+                        <span className="text-[10px] font-semibold text-[#8A5410]">
+                          {teacherMode && idx > 0 ? 'Libre' : 'Activa'}
+                        </span>
                       ) : (
                         <Lock
                           className="h-3.5 w-3.5 text-[#8F97A3]"
-                          aria-label="Cerrojo cerrado"
+                          aria-label="Sala bloqueada"
                         />
                       )}
                     </div>
@@ -313,6 +361,12 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                 );
               })}
             </div>
+            {!teacherMode && (
+              <p className="mt-1.5 text-[11px] text-[#526071]">
+                Las salas siguientes se desbloquean al abrir cada cerrojo de salida. Activa{' '}
+                <strong>Modo docente</strong> si necesitas saltar libremente en clase.
+              </p>
+            )}
           </div>
 
           {/* Prominent Showcase Grid: Logros de Explorador, Bitácora, Puzles, Álbum, Atlas & Audiolibro */}

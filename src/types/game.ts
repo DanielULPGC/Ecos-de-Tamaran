@@ -466,6 +466,7 @@ export interface ExpeditionState {
   solvedJigsawRooms: RoomId[];
   atlasLayersCompleted: AtlasLayerId[];
   timelineSolved: boolean;
+  teacherMode: boolean;
 }
 
 export interface CodedEvaluationCriterion {

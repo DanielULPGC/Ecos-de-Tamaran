@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   MessageCircle,
   Minus,
@@ -16,6 +16,7 @@ import {
 } from '../data/enrichmentData';
 import { soundEngine } from '../utils/audio';
 import { isSpeechSupported, speakText } from '../utils/speech';
+import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface AssemblyModalProps {
   room: RoomData;
@@ -28,6 +29,8 @@ export const AssemblyModal: React.FC<AssemblyModalProps> = ({
   muted,
   onClose,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(dialogRef, true);
   const speechAvailable = isSpeechSupported();
   const [roleOffset, setRoleOffset] = useState(0);
   const [studentNames, setStudentNames] = useState<string[]>(['', '', '', '']);
@@ -57,6 +60,7 @@ export const AssemblyModal: React.FC<AssemblyModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="assembly-modal-title"

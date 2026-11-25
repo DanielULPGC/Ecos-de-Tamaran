@@ -12,6 +12,7 @@ import {
   Gem,
   Globe2,
   HeartHandshake,
+  Lock,
   Mountain,
   Search,
   Shapes,
@@ -30,6 +31,7 @@ import {
   buildMissionLogByRoom,
 } from '../data/missionLogData';
 import { soundEngine } from '../utils/audio';
+import { isRoomAccessible } from '../utils/expeditionStorage';
 import { isSpeechSupported, speakText } from '../utils/speech';
 import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
@@ -546,28 +548,35 @@ export const MissionLogModal: React.FC<MissionLogModalProps> = ({
                         </div>
 
                         <div className="flex items-center justify-end shrink-0 pl-10 sm:pl-0">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onNavigateToMission(
-                                item.roomIndex,
-                                item.actionTarget
-                              )
-                            }
-                            className={`inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                              item.completed
-                                ? 'border border-[#2A6F4E]/40 bg-white text-[#1D543A] hover:bg-[#DDF0E4]'
-                                : 'bg-[#1D4E89] text-white hover:bg-[#153A68]'
-                            }`}
-                          >
-                            <span>
-                              {item.completed ? 'Revisar' : 'Ir al reto'}
+                          {isRoomAccessible(state, item.roomIndex) ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onNavigateToMission(
+                                  item.roomIndex,
+                                  item.actionTarget
+                                )
+                              }
+                              className={`inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                                item.completed
+                                  ? 'border border-[#2A6F4E]/40 bg-white text-[#1D543A] hover:bg-[#DDF0E4]'
+                                  : 'bg-[#1D4E89] text-white hover:bg-[#153A68]'
+                              }`}
+                            >
+                              <span>
+                                {item.completed ? 'Revisar' : 'Ir al reto'}
+                              </span>
+                              <ArrowUpRight
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-lg border border-[#232A34]/12 bg-[#EAE6DC] px-3 py-2 text-[11px] font-semibold text-[#6B7482] whitespace-nowrap shrink-0">
+                              <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                              <span>Abre Sala {item.roomIndex}</span>
                             </span>
-                            <ArrowUpRight
-                              className="h-3.5 w-3.5"
-                              aria-hidden="true"
-                            />
-                          </button>
+                          )}
                         </div>
                       </li>
                     ))}

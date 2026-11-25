@@ -34,6 +34,7 @@ import {
   getExplorerById,
 } from '../data/charactersAndBadges';
 import { soundEngine } from '../utils/audio';
+import { isRoomAccessible } from '../utils/expeditionStorage';
 import { isSpeechSupported, speakText, stopSpeaking } from '../utils/speech';
 import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
@@ -586,17 +587,25 @@ export const ExplorerAchievementsModal: React.FC<
                       ) : (
                         <>
                           <span className="text-[#526071]">Por desbloquear</span>
-                          <button
-                            type="button"
-                            onClick={() => onNavigateTarget(nav.target)}
-                            className="inline-flex items-center gap-1 font-bold text-[#1D4E89] hover:underline whitespace-nowrap cursor-pointer"
-                          >
-                            <span>{nav.label}</span>
-                            <ArrowUpRight
-                              className="h-3.5 w-3.5"
-                              aria-hidden="true"
-                            />
-                          </button>
+                          {nav.target.type === 'room' &&
+                          !isRoomAccessible(state, nav.target.roomIndex) ? (
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#6B7482] whitespace-nowrap">
+                              <Lock className="h-3 w-3" aria-hidden="true" />
+                              <span>Abre Sala {nav.target.roomIndex}</span>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateTarget(nav.target)}
+                              className="inline-flex items-center gap-1 font-bold text-[#1D4E89] hover:underline whitespace-nowrap cursor-pointer"
+                            >
+                              <span>{nav.label}</span>
+                              <ArrowUpRight
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          )}
                         </>
                       )}
                     </div>

@@ -7,6 +7,9 @@ import {
   evaluateSpecificCompetencies,
 } from '../data/curriculumData';
 import { getUnlockedTimeCapsuleRoomIds } from '../data/timeCapsules';
+import { getDifficultyProfile } from '../data/difficultyConfig';
+import { formatEscapeTime } from '../data/escapeLocks';
+import { BADGES } from '../data/charactersAndBadges';
 import { STICKY_EMOJIS } from '../components/StickyNoteWidget';
 
 const STICKY_RGB: Record<
@@ -71,10 +74,14 @@ export async function exportJournalToPdf(
     year: 'numeric',
   });
 
+  const difficulty = getDifficultyProfile(cycle);
   const completedRoomsCount = ROOMS_DATA.filter((r) => {
     const p = state.progress[r.id];
     return p.puzzle1Solved && p.puzzle2Solved && p.empathySolved;
   }).length;
+  const unlockedDoorsCount = ROOMS_DATA.filter(
+    (r) => state.progress[r.id].doorUnlocked
+  ).length;
 
   const entriesCount = ROOMS_DATA.filter((r) => Boolean(state.journal[r.id])).length;
   const shadowsSolvedCount = ROOMS_DATA.filter(
@@ -114,11 +121,12 @@ export async function exportJournalToPdf(
   };
 
   // --- Header Banner ---
+  const showTimerMeta = state.showEscapeTimer && state.elapsedSeconds > 0;
   doc.setFillColor(234, 230, 220);
-  doc.roundedRect(margin, y, contentWidth, 38, 3, 3, 'F');
+  doc.roundedRect(margin, y, contentWidth, 43, 3, 3, 'F');
   doc.setDrawColor(29, 78, 137);
   doc.setLineWidth(0.7);
-  doc.line(margin, y + 38, margin + contentWidth, y + 38);
+  doc.line(margin, y + 43, margin + contentWidth, y + 43);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
@@ -135,15 +143,17 @@ export async function exportJournalToPdf(
   doc.text('Diario de Reflexión y Seguimiento Competencial', margin + 5, y + 15);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9.2);
+  doc.setFontSize(9);
   doc.setTextColor(58, 69, 84);
   doc.text(
-    `Alumnado / Equipo: ${studentName}   |   ${cycleLabel}`,
+    `Alumnado / Equipo: ${studentName}   |   ${cycleLabel} (${toPdfText(difficulty.levelName)})`,
     margin + 5,
     y + 22
   );
   doc.text(
-    `Guía: ${toPdfText(explorer.name)}   |   Fecha: ${today}   |   Salas: ${completedRoomsCount}/4   |   Reflexiones: ${entriesCount}/4`,
+    `Guía: ${toPdfText(explorer.name)}   |   Fecha: ${today}   |   Salas: ${completedRoomsCount}/4   |   Cerrojos: ${unlockedDoorsCount}/4${
+      showTimerMeta ? `   |   Tiempo: ${formatEscapeTime(state.elapsedSeconds)}` : ''
+    }`,
     margin + 5,
     y + 28
   );
@@ -152,14 +162,19 @@ export async function exportJournalToPdf(
   const specificCompetencies = evaluateSpecificCompetencies(state, cycle);
 
   doc.text(
-    `Enigmas: ${puzzlesSolvedCount}/8 (Pistas: ${totalHintsUsed})   |   Atlas Natural: ${atlasCount}/4   |   Línea Tiempo: ${
-      timelineDone ? 'Sí' : 'Pend.'
-    }   |   Sombras: ${shadowsSolvedCount}/4   |   Cápsulas: ${capsulesUnlockedCount}/4`,
+    `Enigmas: ${puzzlesSolvedCount}/8 (Pistas: ${totalHintsUsed})   |   Reflexiones: ${entriesCount}/4   |   Insignias: ${state.unlockedBadges.length}/${BADGES.length}`,
     margin + 5,
     y + 34
   );
+  doc.text(
+    `Atlas Natural: ${atlasCount}/4   |   Línea Tiempo: ${
+      timelineDone ? 'Sí' : 'Pend.'
+    }   |   Sombras: ${shadowsSolvedCount}/4   |   Cápsulas: ${capsulesUnlockedCount}/4`,
+    margin + 5,
+    y + 39.5
+  );
 
-  y += 44;
+  y += 49;
 
   // --- Muro de Pega-notas (summary strip if present) ---
   if (pinnedNotes.length > 0) {
@@ -289,9 +304,10 @@ export async function exportJournalToPdf(
       curY
     );
 
-    const extrasLabel = `Sombras: ${p.shadowSolved ? 'Sí' : 'No'} | Misión 2030: ${
-      p.transversalSolved ? 'Sí' : 'No'
-    } | Pistas: ${roomHints}`;
+    const extrasLabel = `Cerrojo: ${p.doorUnlocked ? 'Abierto' : 'Pend.'} | Sombras: ${
+      p.shadowSolved ? 'Sí' : 'No'
+    } | Misión 2030: ${p.transversalSolved ? 'Sí' : 'No'} | Pistas: ${roomHints}`;
+    doc.setFontSize(8);
     doc.setTextColor(29, 78, 137);
     doc.text(
       `Sellos: ${seals}/3 | ${extrasLabel}`,

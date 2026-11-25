@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Heart, X } from 'lucide-react';
 import {
   RoomData,
@@ -7,6 +7,7 @@ import {
 } from '../types/game';
 import { THERMOMETER_MOODS } from '../data/enrichmentData';
 import { soundEngine } from '../utils/audio';
+import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface ThermometerModalProps {
   room: RoomData;
@@ -23,11 +24,14 @@ export const ThermometerModal: React.FC<ThermometerModalProps> = ({
   onSelectMood,
   onClose,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(dialogRef, true);
   const selectedBefore = currentCheck?.before;
   const selectedAfter = currentCheck?.after;
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="thermometer-modal-title"

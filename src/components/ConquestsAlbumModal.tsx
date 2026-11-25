@@ -52,6 +52,7 @@ import {
 } from '../data/timeCapsules';
 import { TimeCapsuleViewerModal } from './TimeCapsuleViewerModal';
 import { soundEngine } from '../utils/audio';
+import { isRoomAccessible } from '../utils/expeditionStorage';
 import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface ConquestsAlbumModalProps {
@@ -612,7 +613,7 @@ export const ConquestsAlbumModal: React.FC<ConquestsAlbumModalProps> = ({
                               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                               <span>Ver cápsula</span>
                             </button>
-                          ) : (
+                          ) : isRoomAccessible(state, roomIndex) ? (
                             <button
                               type="button"
                               onClick={() => onJumpToRoom(roomIndex)}
@@ -624,6 +625,11 @@ export const ConquestsAlbumModal: React.FC<ConquestsAlbumModalProps> = ({
                                 aria-hidden="true"
                               />
                             </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#6B7482] whitespace-nowrap shrink-0">
+                              <Lock className="h-3 w-3" aria-hidden="true" />
+                              <span>Abre Sala {room.number - 1}</span>
+                            </span>
                           )}
                         </div>
                       </div>
@@ -918,19 +924,25 @@ export const ConquestsAlbumModal: React.FC<ConquestsAlbumModalProps> = ({
                         >
                           {seal.unlocked ? 'Sello estampado ✓' : 'Pendiente'}
                         </span>
-                        {!seal.unlocked && (
-                          <button
-                            type="button"
-                            onClick={() => onJumpToRoom(seal.roomIndex)}
-                            className="inline-flex items-center gap-0.5 font-bold text-[#1D4E89] hover:underline cursor-pointer"
-                          >
-                            <span>Ir</span>
-                            <ArrowUpRight
-                              className="h-3 w-3"
-                              aria-hidden="true"
-                            />
-                          </button>
-                        )}
+                        {!seal.unlocked &&
+                          (isRoomAccessible(state, seal.roomIndex) ? (
+                            <button
+                              type="button"
+                              onClick={() => onJumpToRoom(seal.roomIndex)}
+                              className="inline-flex items-center gap-0.5 font-bold text-[#1D4E89] hover:underline cursor-pointer"
+                            >
+                              <span>Ir</span>
+                              <ArrowUpRight
+                                className="h-3 w-3"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[#6B7482]">
+                              <Lock className="h-3 w-3" aria-hidden="true" />
+                              <span>Bloqueada</span>
+                            </span>
+                          ))}
                       </div>
                     </article>
                   );
@@ -1101,21 +1113,28 @@ export const ConquestsAlbumModal: React.FC<ConquestsAlbumModalProps> = ({
                       >
                         {solved ? 'Completada ✓' : 'Sin completar'}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => onJumpToRoom(roomIndex)}
-                        className="inline-flex items-center gap-1 font-bold text-[#1D4E89] hover:underline cursor-pointer"
-                      >
-                        <span>
-                          {solved
-                            ? `Revisar Sala ${room.number}`
-                            : `Ir a Sala ${room.number}`}
+                      {isRoomAccessible(state, roomIndex) ? (
+                        <button
+                          type="button"
+                          onClick={() => onJumpToRoom(roomIndex)}
+                          className="inline-flex items-center gap-1 font-bold text-[#1D4E89] hover:underline cursor-pointer"
+                        >
+                          <span>
+                            {solved
+                              ? `Revisar Sala ${room.number}`
+                              : `Ir a Sala ${room.number}`}
+                          </span>
+                          <ArrowUpRight
+                            className="h-3.5 w-3.5"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-semibold text-[#6B7482]">
+                          <Lock className="h-3 w-3" aria-hidden="true" />
+                          <span>Sala bloqueada</span>
                         </span>
-                        <ArrowUpRight
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-                      </button>
+                      )}
                     </div>
                   </article>
                 ))}

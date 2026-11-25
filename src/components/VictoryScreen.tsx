@@ -76,8 +76,18 @@ export const VictoryScreen: React.FC<VictoryScreenProps> = ({
       ? '2.º Ciclo de Primaria (3.º y 4.º)'
       : '3.º Ciclo de Primaria (5.º y 6.º)';
 
+  const doorsUnlockedCount = ROOMS_DATA.filter(
+    (r) => state.progress[r.id].doorUnlocked
+  ).length;
+
   const handleDownload = () => {
-    downloadReflectionReport(state.explorerName, cycle, entries, state.emotions);
+    downloadReflectionReport(state.explorerName, cycle, entries, state.emotions, {
+      doorsUnlocked: doorsUnlockedCount,
+      badgesUnlocked: state.unlockedBadges.length,
+      badgesTotal: BADGES.length,
+      elapsedSeconds: state.elapsedSeconds,
+      showEscapeTimer: state.showEscapeTimer,
+    });
   };
 
   return (

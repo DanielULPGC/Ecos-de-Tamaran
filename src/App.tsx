@@ -11,14 +11,10 @@ import type { User as FirebaseUser } from 'firebase/auth';
 import { initClassroomAuth } from './utils/googleClassroomAuth';
 import type { ClassroomLaunchMode } from './components/GoogleClassroomModal';
 import {
-  AtlasLayerId,
   AtlasModalTab,
   BadgeDefinition,
   CharacterReactionId,
-  CycleId,
-  DuaSettings,
   ExpeditionState,
-  ExplorerId,
   HonorAchievementDefinition,
   HonorAchievementId,
   JournalEntry,
@@ -53,14 +49,16 @@ import {
   speakText,
   stopSpeaking,
 } from './utils/speech';
-import { ambientAudio, AmbientVolumeLevel } from './utils/ambientAudio';
+import { ambientAudio } from './utils/ambientAudio';
+import {
+  createInitialState,
+  isRoomAccessible,
+  loadSavedState,
+  saveExpeditionState,
+} from './utils/expeditionStorage';
 import { TitleScreen } from './components/TitleScreen';
 import { RoomStage } from './components/RoomStage';
 import { ClueModal } from './components/ClueModal';
-import { PuzzleModal } from './components/PuzzleModal';
-import { EmpathyModal } from './components/EmpathyModal';
-import { JournalModal } from './components/JournalModal';
-import { IslandMapModal } from './components/IslandMapModal';
 import { PauseModal } from './components/PauseModal';
 import { RoomTransition } from './components/RoomTransition';
 import { VictoryScreen } from './components/VictoryScreen';
@@ -70,9 +68,7 @@ import { CollectibleModal } from './components/CollectibleModal';
 import { AssemblyModal } from './components/AssemblyModal';
 import { DuaPanelModal } from './components/DuaPanelModal';
 import { ThermometerModal } from './components/ThermometerModal';
-import { RoomExitLockModal } from './components/RoomExitLockModal';
 import { MissionActionTarget } from './data/missionLogData';
-import { ShadowMatchModal } from './components/ShadowMatchModal';
 import { SHADOW_CHALLENGES } from './data/shadowMatchData';
 import {
   evaluateTimeCapsuleProgress,
@@ -80,6 +76,30 @@ import {
   getUnlockedTimeCapsuleRoomIds,
 } from './data/timeCapsules';
 
+const PuzzleModal = lazy(() =>
+  import('./components/PuzzleModal').then((m) => ({ default: m.PuzzleModal }))
+);
+const EmpathyModal = lazy(() =>
+  import('./components/EmpathyModal').then((m) => ({ default: m.EmpathyModal }))
+);
+const JournalModal = lazy(() =>
+  import('./components/JournalModal').then((m) => ({ default: m.JournalModal }))
+);
+const IslandMapModal = lazy(() =>
+  import('./components/IslandMapModal').then((m) => ({
+    default: m.IslandMapModal,
+  }))
+);
+const RoomExitLockModal = lazy(() =>
+  import('./components/RoomExitLockModal').then((m) => ({
+    default: m.RoomExitLockModal,
+  }))
+);
+const ShadowMatchModal = lazy(() =>
+  import('./components/ShadowMatchModal').then((m) => ({
+    default: m.ShadowMatchModal,
+  }))
+);
 const TeacherGuideModal = lazy(() =>
   import('./components/TeacherGuideModal').then((m) => ({
     default: m.TeacherGuideModal,
@@ -130,193 +150,6 @@ const GoogleClassroomModal = lazy(() =>
     default: m.GoogleClassroomModal,
   }))
 );
-
-const STORAGE_KEY = 'ecos_tamaran_expedition_v2';
-
-const DEFAULT_DUA: DuaSettings = {
-  dyslexiaFont: false,
-  highContrast: false,
-  voiceRate: 1.0,
-  pictograms: false,
-};
-
-function createInitialRoomProgress(): RoomProgress {
-  return {
-    clueFound: false,
-    puzzle1Solved: false,
-    puzzle2Solved: false,
-    empathySolved: false,
-    doorUnlocked: false,
-    transversalSolved: false,
-    collectibleFound: false,
-    shadowSolved: false,
-    hintsUsed: {
-      puzzle1: 0,
-      puzzle2: 0,
-    },
-  };
-}
-
-function createInitialState(
-  cycle: CycleId = 'ciclo2',
-  explorerId: ExplorerId = 'nayra',
-  explorerName = '',
-  muted = false,
-  voiceAuto = false,
-  dua: DuaSettings = DEFAULT_DUA,
-  ambientEnabled = true,
-  ambientVolume: AmbientVolumeLevel = 0.55,
-  showEscapeTimer = true
-): ExpeditionState {
-  return {
-    phase: 'TITLE_MENU',
-    cycle,
-    explorerId,
-    explorerName,
-    currentRoomIndex: 0,
-    elapsedSeconds: 0,
-    showEscapeTimer,
-    muted,
-    voiceAuto,
-    ambientEnabled,
-    ambientVolume,
-    dua,
-    progress: {
-      aborigenes: createInitialRoomProgress(),
-      conquista: createInitialRoomProgress(),
-      pirateria: createInitialRoomProgress(),
-      sigloXX: createInitialRoomProgress(),
-    },
-    journal: {},
-    emotions: {},
-    unlockedBadges: [],
-    seenBadgeIds: [],
-    unlockedHonorIds: [],
-    seenHonorIds: [],
-    seenTimeCapsuleRooms: [],
-    explorersTried: [explorerId],
-    solvedJigsawRooms: [],
-    atlasLayersCompleted: [],
-    timelineSolved: false,
-  };
-}
-
-function mergeRoomProgress(saved?: Partial<RoomProgress>): RoomProgress {
-  const base = createInitialRoomProgress();
-  if (!saved) return base;
-  return {
-    ...base,
-    ...saved,
-    hintsUsed: {
-      ...base.hintsUsed,
-      ...(saved.hintsUsed ?? {}),
-    },
-  };
-}
-
-function loadSavedState(): ExpeditionState {
-  if (typeof window === 'undefined') return createInitialState();
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return createInitialState();
-    const parsed = JSON.parse(raw) as Partial<ExpeditionState>;
-    const validExplorer: ExplorerId =
-      parsed.explorerId === 'aday' ||
-      parsed.explorerId === 'sofia' ||
-      parsed.explorerId === 'yeray'
-        ? parsed.explorerId
-        : 'nayra';
-
-    const savedDua: DuaSettings = {
-      dyslexiaFont: Boolean(parsed.dua?.dyslexiaFont),
-      highContrast: Boolean(parsed.dua?.highContrast),
-      voiceRate:
-        parsed.dua?.voiceRate === 0.8 || parsed.dua?.voiceRate === 1.15
-          ? parsed.dua.voiceRate
-          : 1.0,
-      pictograms: Boolean(parsed.dua?.pictograms),
-    };
-
-    const savedAmbientEnabled =
-      typeof parsed.ambientEnabled === 'boolean' ? parsed.ambientEnabled : true;
-    const savedAmbientVolume: AmbientVolumeLevel =
-      parsed.ambientVolume === 0.28 || parsed.ambientVolume === 0.85
-        ? parsed.ambientVolume
-        : 0.55;
-
-    const base = createInitialState(
-      parsed.cycle === 'ciclo3' ? 'ciclo3' : 'ciclo2',
-      validExplorer,
-      typeof parsed.explorerName === 'string' ? parsed.explorerName : '',
-      Boolean(parsed.muted),
-      Boolean(parsed.voiceAuto),
-      savedDua,
-      savedAmbientEnabled,
-      savedAmbientVolume,
-      typeof parsed.showEscapeTimer === 'boolean' ? parsed.showEscapeTimer : true
-    );
-    const hydrated: ExpeditionState = {
-      ...base,
-      phase: 'TITLE_MENU',
-      elapsedSeconds:
-        typeof parsed.elapsedSeconds === 'number' && parsed.elapsedSeconds >= 0
-          ? Math.floor(parsed.elapsedSeconds)
-          : 0,
-      currentRoomIndex:
-        typeof parsed.currentRoomIndex === 'number' &&
-        parsed.currentRoomIndex >= 0 &&
-        parsed.currentRoomIndex < ROOMS_DATA.length
-          ? parsed.currentRoomIndex
-          : 0,
-      progress: {
-        aborigenes: mergeRoomProgress(parsed.progress?.aborigenes),
-        conquista: mergeRoomProgress(parsed.progress?.conquista),
-        pirateria: mergeRoomProgress(parsed.progress?.pirateria),
-        sigloXX: mergeRoomProgress(parsed.progress?.sigloXX),
-      },
-      journal: parsed.journal ?? {},
-      emotions: parsed.emotions ?? {},
-      unlockedBadges: Array.isArray(parsed.unlockedBadges)
-        ? parsed.unlockedBadges
-        : [],
-      seenBadgeIds: Array.isArray(parsed.seenBadgeIds)
-        ? parsed.seenBadgeIds
-        : [],
-      unlockedHonorIds: Array.isArray(parsed.unlockedHonorIds)
-        ? parsed.unlockedHonorIds
-        : [],
-      seenHonorIds: Array.isArray(parsed.seenHonorIds)
-        ? parsed.seenHonorIds
-        : [],
-      seenTimeCapsuleRooms: Array.isArray(parsed.seenTimeCapsuleRooms)
-        ? parsed.seenTimeCapsuleRooms
-        : [],
-      explorersTried:
-        Array.isArray(parsed.explorersTried) && parsed.explorersTried.length > 0
-          ? parsed.explorersTried
-          : [validExplorer],
-      solvedJigsawRooms: Array.isArray(parsed.solvedJigsawRooms)
-        ? parsed.solvedJigsawRooms
-        : [],
-      atlasLayersCompleted: Array.isArray(parsed.atlasLayersCompleted)
-        ? parsed.atlasLayersCompleted.filter(
-            (l): l is AtlasLayerId =>
-              l === 'relieve' ||
-              l === 'ecosistemas' ||
-              l === 'agua' ||
-              l === 'patrimonio'
-          )
-        : [],
-      timelineSolved: Boolean(parsed.timelineSolved),
-    };
-    return {
-      ...hydrated,
-      unlockedHonorIds: computeUnlockedHonorIds(hydrated),
-    };
-  } catch {
-    return createInitialState();
-  }
-}
 
 type ActiveModal =
   | null
@@ -557,11 +390,7 @@ export default function App() {
 
   // Persist expedition state automatically to localStorage
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // Ignore storage errors
-    }
+    saveExpeditionState(state);
   }, [state]);
 
   const hasSavedProgress = useMemo(() => {
@@ -595,7 +424,8 @@ export default function App() {
         prev.dua,
         prev.ambientEnabled,
         prev.ambientVolume,
-        prev.showEscapeTimer
+        prev.showEscapeTimer,
+        prev.teacherMode
       ),
       phase: 'PLAYING',
     }));
@@ -615,7 +445,8 @@ export default function App() {
         prev.dua,
         prev.ambientEnabled,
         prev.ambientVolume,
-        prev.showEscapeTimer
+        prev.showEscapeTimer,
+        prev.teacherMode
       )
     );
   }, []);
@@ -911,6 +742,30 @@ export default function App() {
     [state.progress]
   );
 
+  const accessibleRoomIndices = useMemo(
+    () =>
+      ROOMS_DATA.map((_, idx) => idx).filter((idx) =>
+        isRoomAccessible(state, idx)
+      ),
+    [state]
+  );
+
+  const handleJumpToRoom = useCallback((idx: number) => {
+    setState((prev) => {
+      if (!isRoomAccessible(prev, idx)) {
+        soundEngine.playGentleError();
+        return prev;
+      }
+      soundEngine.playDoorOpen();
+      setActiveModal(null);
+      return {
+        ...prev,
+        currentRoomIndex: idx,
+        phase: 'PLAYING',
+      };
+    });
+  }, []);
+
   const missionProgressSummary = useMemo(() => {
     const total = ROOMS_DATA.length * 7;
     const completed = ROOMS_DATA.reduce((acc, room) => {
@@ -931,6 +786,10 @@ export default function App() {
 
   const handleNavigateToMission = useCallback(
     (roomIndex: number, target: MissionActionTarget) => {
+      if (!isRoomAccessible(state, roomIndex)) {
+        soundEngine.playGentleError();
+        return;
+      }
       stopSpeaking();
       const targetRoom = ROOMS_DATA[roomIndex] ?? ROOMS_DATA[0];
       const targetProgress = state.progress[targetRoom.id];
@@ -960,7 +819,7 @@ export default function App() {
 
       setActiveModal({ type: target });
     },
-    [state.progress]
+    [state]
   );
 
   const handleSolveJigsawRoom = useCallback(
@@ -968,17 +827,18 @@ export default function App() {
       const room = ROOMS_DATA.find((r) => r.id === roomId);
       setState((prev) => {
         if (prev.solvedJigsawRooms.includes(roomId)) return prev;
-        triggerCelebration(
-          `¡Mural restaurado: ${room?.title ?? 'Gran Canaria'}!`,
-          null
-        );
-        return {
+        const draft: ExpeditionState = {
           ...prev,
           solvedJigsawRooms: [...prev.solvedJigsawRooms, roomId],
         };
+        return finalizeStateWithRewards(
+          prev,
+          draft,
+          `¡Mural restaurado: ${room?.title ?? 'Gran Canaria'}!`
+        );
       });
     },
-    [triggerCelebration]
+    [finalizeStateWithRewards]
   );
 
   const currentCollectible =
@@ -1286,6 +1146,7 @@ export default function App() {
       )}
 
       {/* Active Modals */}
+      <Suspense fallback={null}>
       {activeModal?.type === 'clue' && (
         <ClueModal
           clue={currentRoom.clue}
@@ -1519,15 +1380,7 @@ export default function App() {
         <IslandMapModal
           state={state}
           initialTab={activeModal.initialTab}
-          onJumpToRoom={(idx) => {
-            soundEngine.playDoorOpen();
-            setActiveModal(null);
-            setState((prev) => ({
-              ...prev,
-              currentRoomIndex: idx,
-              phase: 'PLAYING',
-            }));
-          }}
+          onJumpToRoom={handleJumpToRoom}
           onCompleteAtlasLayer={(layerId) => {
             setState((prev) => {
               const existing = prev.atlasLayersCompleted ?? [];
@@ -1638,15 +1491,7 @@ export default function App() {
           <ConquestsAlbumModal
             state={state}
             muted={state.muted}
-            onJumpToRoom={(idx) => {
-              soundEngine.playDoorOpen();
-              setActiveModal(null);
-              setState((prev) => ({
-                ...prev,
-                currentRoomIndex: idx,
-                phase: 'PLAYING',
-              }));
-            }}
+            onJumpToRoom={handleJumpToRoom}
             onMarkHonorSeen={handleMarkHonorSeen}
             onMarkTimeCapsuleSeen={handleMarkTimeCapsuleSeen}
             onClose={() => {
@@ -1750,6 +1595,8 @@ export default function App() {
           elapsedSeconds={state.elapsedSeconds}
           showEscapeTimer={state.showEscapeTimer}
           unlockedDoorRooms={unlockedDoorRooms}
+          accessibleRoomIndices={accessibleRoomIndices}
+          teacherMode={state.teacherMode}
           classroomUserEmail={classroomUser?.email ?? null}
           onResume={() => {
             soundEngine.playClick();
@@ -1773,19 +1620,19 @@ export default function App() {
               return finalizeStateWithRewards(prev, draft);
             });
           }}
-          onJumpToRoom={(idx) => {
-            soundEngine.playDoorOpen();
-            setState((prev) => ({
-              ...prev,
-              currentRoomIndex: idx,
-              phase: 'PLAYING',
-            }));
-          }}
+          onJumpToRoom={handleJumpToRoom}
           onToggleEscapeTimer={() => {
             soundEngine.playClick();
             setState((prev) => ({
               ...prev,
               showEscapeTimer: !prev.showEscapeTimer,
+            }));
+          }}
+          onToggleTeacherMode={() => {
+            soundEngine.playClick();
+            setState((prev) => ({
+              ...prev,
+              teacherMode: !prev.teacherMode,
             }));
           }}
           onToggleMute={() =>
@@ -1881,17 +1728,13 @@ export default function App() {
               }));
             }}
             onNavigateTarget={(target) => {
-              soundEngine.playDoorOpen();
               if (target.type === 'room') {
-                setActiveModal(null);
-                setState((prev) => ({
-                  ...prev,
-                  currentRoomIndex: target.roomIndex,
-                  phase: 'PLAYING',
-                }));
+                handleJumpToRoom(target.roomIndex);
               } else if (target.type === 'atlas') {
+                soundEngine.playDoorOpen();
                 setActiveModal({ type: 'map', initialTab: target.tab });
               } else if (target.type === 'jigsaw') {
+                soundEngine.playDoorOpen();
                 setActiveModal({ type: 'jigsaw' });
               }
             }}
@@ -1949,6 +1792,7 @@ export default function App() {
             onClose={() => setActiveModal(null)}
           />
         )}
+      </Suspense>
       </Suspense>
     </div>
   );

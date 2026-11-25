@@ -391,7 +391,7 @@ export const PuzzleModal: React.FC<PuzzleModalProps> = ({
       triggerReaction('animo');
       setFeedback({
         type: 'error',
-        text: `Tienes ${selectedCells.length} marcas y el dibujo lleva ${p.targetPattern.length}. ¡Revisa las 3 pistas o usa tu poder!`,
+        text: `Tienes ${selectedCells.length} marcas y el dibujo lleva ${p.targetPattern.length}. ¡Revisa las ${maxHints} pistas o usa tu poder!`,
       });
     }
   };

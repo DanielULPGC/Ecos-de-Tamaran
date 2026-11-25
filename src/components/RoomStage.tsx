@@ -51,6 +51,7 @@ import { getDifficultyProfile } from '../data/difficultyConfig';
 import { RoomShadowChallenge } from '../data/shadowMatchData';
 import { CHARACTER_REACTION_META } from '../data/characterReactions';
 import { ExplorerReactionAvatar } from './ExplorerReactionAvatar';
+import { RoomAtmosphereParticles } from './RoomAtmosphereParticles';
 import { isSpeechSupported, speakText } from '../utils/speech';
 import { AMBIENT_SOUNDSCAPE_META } from '../utils/ambientAudio';
 
@@ -157,6 +158,7 @@ export const RoomStage: React.FC<RoomStageProps> = ({
 
   const cluesRef = useRef<HTMLDivElement | null>(null);
   const backpackRef = useRef<HTMLDivElement | null>(null);
+  const playfieldRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setImgFailed(false);
@@ -532,6 +534,7 @@ export const RoomStage: React.FC<RoomStageProps> = ({
         style={{ containerType: 'size' }}
       >
         <div
+          ref={playfieldRef}
           className="relative overflow-hidden rounded-xl border border-[#F5F3EE]/14 shadow-2xl"
           style={{
             width: 'min(100cqw, calc(100cqh * 16 / 9), 1440px)',
@@ -560,6 +563,12 @@ export const RoomStage: React.FC<RoomStageProps> = ({
               </div>
             </div>
           )}
+
+          {/* Atmospheric room-specific floating dust/sand/sea-spray particles with tactile sound */}
+          <RoomAtmosphereParticles
+            roomId={room.id}
+            interactionTargetRef={playfieldRef}
+          />
 
           {/* Subtle vignette for pin clarity */}
           <div

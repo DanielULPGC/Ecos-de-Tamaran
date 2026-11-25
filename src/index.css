@@ -336,10 +336,28 @@
   border-width: 2px !important;
 }
 
-.dua-high-contrast [role="dialog"] > div {
+.dua-high-contrast [role="dialog"]:not([data-dialog-theme="dark"]) > div {
   background-color: #ffffff !important;
   color: #0b0e13 !important;
   border-color: #0b0e13 !important;
+}
+
+.dua-high-contrast [role="dialog"][data-dialog-theme="dark"] > div {
+  background-color: #0b0e13 !important;
+  color: #ffffff !important;
+  border-color: #ffd166 !important;
+  border-width: 2px !important;
+}
+
+.dua-high-contrast [role="dialog"][data-dialog-theme="dark"] p,
+.dua-high-contrast [role="dialog"][data-dialog-theme="dark"] span,
+.dua-high-contrast [role="dialog"][data-dialog-theme="dark"] h2,
+.dua-high-contrast [role="dialog"][data-dialog-theme="dark"] h3 {
+  text-shadow: none !important;
+}
+
+.dua-high-contrast .room-particles-canvas {
+  opacity: 0.15;
 }
 
 @media print {

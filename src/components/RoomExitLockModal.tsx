@@ -169,6 +169,7 @@ export const RoomExitLockModal: React.FC<RoomExitLockModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="exit-lock-title"
+      data-dialog-theme="dark"
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#0C1016]/86 p-3 sm:p-5"
     >
       <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#E6A94F]/35 bg-[#171B21] text-[#F5F3EE] shadow-2xl">

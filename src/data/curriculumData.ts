@@ -102,7 +102,7 @@ export const LEARNING_SITUATION_SA: LearningSituationPlan = {
   ],
   duaMeasures: [
     'Múltiples formas de representación: narración oral TTS regulable (0,8×–1,15×), modo pictogramas, fuente adaptada para dislexia, alto contraste y Glosario Unificado (A–Z + Visual).',
-    'Múltiples formas de acción y expresión: pistas graduadas en 3 niveles, inicios de frase guiados, controles accesibles por teclado y sin cronómetro sancionador.',
+    'Múltiples formas de acción y expresión: pistas graduadas según ciclo (3 en 2.º Ciclo, 2 en 3.º Ciclo), inicios de frase guiados, controles accesibles por teclado y cronómetro de Escape Room opcional no sancionador.',
     'Múltiples formas de implicación: elección de 4 avatares con poderes pedagógicos diferenciados, termómetro emocional (EMOCREA) y retos opcionales de ampliación.',
   ],
   assessmentInstruments: [

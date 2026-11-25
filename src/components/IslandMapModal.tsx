@@ -39,6 +39,7 @@ import {
 import { CanarianEmblemSvg } from './CollectibleModal';
 import { isSpeechSupported, speakText, stopSpeaking } from '../utils/speech';
 import { soundEngine } from '../utils/audio';
+import { isRoomAccessible } from '../utils/expeditionStorage';
 import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface IslandMapModalProps {
@@ -517,13 +518,18 @@ export const IslandMapModal: React.FC<IslandMapModalProps> = ({
                         Number(p.empathySolved);
                       const isLit = seals === 3;
                       const isCurrent = idx === state.currentRoomIndex;
+                      const accessible = isRoomAccessible(state, idx);
                       const pos = ZONE_COORDS[room.id];
 
                       return (
                         <g
                           key={room.id}
-                          onClick={() => onJumpToRoom(idx)}
-                          className="cursor-pointer"
+                          onClick={() => accessible && onJumpToRoom(idx)}
+                          className={
+                            accessible
+                              ? 'cursor-pointer'
+                              : 'cursor-not-allowed opacity-60'
+                          }
                         >
                           {isLit && (
                             <circle
@@ -554,9 +560,11 @@ export const IslandMapModal: React.FC<IslandMapModalProps> = ({
                                 ? '#2A6F4E'
                                 : isCurrent
                                 ? '#C67D1E'
-                                : '#2E3B4A'
+                                : accessible
+                                ? '#2E3B4A'
+                                : '#1B222C'
                             }
-                            stroke="#F5F3EE"
+                            stroke={accessible ? '#F5F3EE' : '#7E8794'}
                             strokeWidth="2"
                           />
                           <text
@@ -568,7 +576,7 @@ export const IslandMapModal: React.FC<IslandMapModalProps> = ({
                             fontFamily="IBM Plex Mono, monospace"
                             fontWeight="700"
                           >
-                            {isLit ? '★' : room.number}
+                            {isLit ? '★' : accessible ? room.number : '🔒'}
                           </text>
                           <text
                             x={pos.labelX}
@@ -599,31 +607,44 @@ export const IslandMapModal: React.FC<IslandMapModalProps> = ({
                       Number(p.empathySolved);
                     const done = seals === 3;
                     const active = idx === state.currentRoomIndex;
+                    const accessible = isRoomAccessible(state, idx);
 
                     return (
                       <button
                         key={room.id}
                         type="button"
-                        onClick={() => onJumpToRoom(idx)}
-                        className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3.5 text-left transition-colors cursor-pointer ${
-                          done
-                            ? 'border-[#2A6F4E]/40 bg-[#E1EFE8]'
+                        disabled={!accessible}
+                        onClick={() => accessible && onJumpToRoom(idx)}
+                        title={
+                          accessible
+                            ? `Ir a ${room.title}`
+                            : `Abre el cerrojo de la Sala ${idx} para desbloquear esta época`
+                        }
+                        className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3.5 text-left transition-colors ${
+                          !accessible
+                            ? 'border-[#232A34]/10 bg-[#EAE6DC]/70 opacity-70 cursor-not-allowed'
+                            : done
+                            ? 'border-[#2A6F4E]/40 bg-[#E1EFE8] cursor-pointer'
                             : active
-                            ? 'border-[#C67D1E] bg-[#F6EAD7]'
-                            : 'border-[#232A34]/15 bg-white hover:border-[#1D4E89]'
+                            ? 'border-[#C67D1E] bg-[#F6EAD7] cursor-pointer'
+                            : 'border-[#232A34]/15 bg-white hover:border-[#1D4E89] cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <span
                             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold ${
-                              done
+                              !accessible
+                                ? 'bg-[#DDD8CC] text-[#6B7482]'
+                                : done
                                 ? 'bg-[#2A6F4E] text-white'
                                 : active
                                 ? 'bg-[#C67D1E] text-[#14181F]'
                                 : 'bg-[#EAE6DC] text-[#333D4B]'
                             }`}
                           >
-                            {done ? (
+                            {!accessible ? (
+                              <Lock className="h-4 w-4" aria-hidden="true" />
+                            ) : done ? (
                               <CheckCircle2
                                 className="h-4 w-4"
                                 aria-hidden="true"
@@ -1094,27 +1115,34 @@ export const IslandMapModal: React.FC<IslandMapModalProps> = ({
                       <span className="font-mono text-[#526071]">
                         {selectedLandmark.curriculumTag}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const idx = ROOMS_DATA.findIndex(
-                            (r) => r.id === selectedLandmark.roomId
+                      {(() => {
+                        const targetIdx = ROOMS_DATA.findIndex(
+                          (r) => r.id === selectedLandmark.roomId
+                        );
+                        const canEnter =
+                          targetIdx >= 0 && isRoomAccessible(state, targetIdx);
+                        if (!canEnter) {
+                          return (
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#6B7482] whitespace-nowrap">
+                              <Lock className="h-3 w-3" aria-hidden="true" />
+                              <span>Sala {targetIdx + 1} bloqueada</span>
+                            </span>
                           );
-                          if (idx >= 0) onJumpToRoom(idx);
-                        }}
-                        className="inline-flex items-center gap-1 font-bold text-[#1D4E89] hover:underline whitespace-nowrap cursor-pointer"
-                      >
-                        <span>
-                          Ver en Sala{' '}
-                          {(ROOMS_DATA.findIndex(
-                            (r) => r.id === selectedLandmark.roomId
-                          ) ?? 0) + 1}
-                        </span>
-                        <ArrowUpRight
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-                      </button>
+                        }
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => onJumpToRoom(targetIdx)}
+                            className="inline-flex items-center gap-1 font-bold text-[#1D4E89] hover:underline whitespace-nowrap cursor-pointer"
+                          >
+                            <span>Ver en Sala {targetIdx + 1}</span>
+                            <ArrowUpRight
+                              className="h-3.5 w-3.5"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -1537,15 +1565,21 @@ export const IslandMapModal: React.FC<IslandMapModalProps> = ({
                           <span>
                             Busca el destello dorado en {room?.title}.
                           </span>
-                          {room && (
-                            <button
-                              type="button"
-                              onClick={() => onJumpToRoom(room.number - 1)}
-                              className="font-bold text-[#1D4E89] hover:underline whitespace-nowrap cursor-pointer"
-                            >
-                              Ir a Sala {room.number}
-                            </button>
-                          )}
+                          {room &&
+                            (isRoomAccessible(state, room.number - 1) ? (
+                              <button
+                                type="button"
+                                onClick={() => onJumpToRoom(room.number - 1)}
+                                className="font-bold text-[#1D4E89] hover:underline whitespace-nowrap cursor-pointer"
+                              >
+                                Ir a Sala {room.number}
+                              </button>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 font-semibold text-[#6B7482] whitespace-nowrap">
+                                <Lock className="h-3 w-3" aria-hidden="true" />
+                                <span>Sala bloqueada</span>
+                              </span>
+                            ))}
                         </div>
                       )}
                     </article>

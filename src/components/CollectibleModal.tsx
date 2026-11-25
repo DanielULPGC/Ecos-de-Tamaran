@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Sparkles, Volume2, X } from 'lucide-react';
 import { CanarianCollectible } from '../types/game';
 import { isSpeechSupported, speakText, stopSpeaking } from '../utils/speech';
+import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 export const CanarianEmblemSvg: React.FC<{
   iconKey: CanarianCollectible['iconKey'];
@@ -93,6 +94,8 @@ export const CollectibleModal: React.FC<CollectibleModalProps> = ({
   voiceAuto,
   onClose,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(dialogRef, true);
   const speechAvailable = isSpeechSupported();
 
   const fullSpeech = `${collectible.word} y ${collectible.secondaryWord}. ${collectible.meaning} Por ejemplo: ${collectible.exampleSentence} ${collectible.culturalFact}`;
@@ -106,6 +109,7 @@ export const CollectibleModal: React.FC<CollectibleModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="collectible-modal-title"

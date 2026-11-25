@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Globe2, Sparkles, Volume2, X } from 'lucide-react';
 import {
   CharacterReactionId,
@@ -10,6 +10,7 @@ import { CHARACTER_REACTION_META } from '../data/characterReactions';
 import { ExplorerReactionAvatar } from './ExplorerReactionAvatar';
 import { soundEngine } from '../utils/audio';
 import { isSpeechSupported, speakText, stopSpeaking } from '../utils/speech';
+import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface TransversalModalProps {
   mission: TransversalMission;
@@ -36,6 +37,8 @@ export const TransversalModal: React.FC<TransversalModalProps> = ({
   onSolved,
   onClose,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(dialogRef, true);
   const speechAvailable = isSpeechSupported();
   const [selectedId, setSelectedId] = useState<string>(() =>
     alreadySolved
@@ -83,6 +86,7 @@ export const TransversalModal: React.FC<TransversalModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="transversal-modal-title"

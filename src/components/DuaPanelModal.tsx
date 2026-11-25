@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Accessibility, Check, Volume2, X } from 'lucide-react';
 import { DuaSettings } from '../types/game';
 import { soundEngine } from '../utils/audio';
 import { isSpeechSupported, speakText } from '../utils/speech';
+import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface DuaPanelModalProps {
   dua: DuaSettings;
@@ -17,6 +18,8 @@ export const DuaPanelModal: React.FC<DuaPanelModalProps> = ({
   onChangeDua,
   onClose,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(dialogRef, true);
   const speechAvailable = isSpeechSupported();
 
   const toggleField = (field: 'dyslexiaFont' | 'highContrast' | 'pictograms') => {
@@ -29,6 +32,7 @@ export const DuaPanelModal: React.FC<DuaPanelModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="dua-modal-title"

@@ -65,7 +65,7 @@ export const ROOM_EXIT_LOCKS: Record<RoomId, RoomExitLockDefinition> = {
           id: 'r1-c3-d1',
           label: 'Base del gofio',
           clueSource: 'Hallazgo · Cesto',
-          options: ['Maíz dulce', 'Cebada tostada', 'Caña de azúcar', 'Trigo molido'],
+          options: ['Maíz dulce', 'Cebada tostada', 'Caña de azúcar', 'Papa hervida'],
           correctIndex: 1,
         },
         {

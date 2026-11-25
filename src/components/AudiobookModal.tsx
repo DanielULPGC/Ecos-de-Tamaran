@@ -21,6 +21,7 @@ import {
   stopSpeaking,
 } from '../utils/speech';
 import { soundEngine } from '../utils/audio';
+import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface AudiobookChapter {
   id: string;
@@ -186,6 +187,8 @@ export const AudiobookModal: React.FC<AudiobookModalProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [finishedAll, setFinishedAll] = useState(false);
   const [listenedIds, setListenedIds] = useState<string[]>([]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(dialogRef, true);
   const pauseTimerRef = useRef<number | null>(null);
 
   const safeIndex = Math.min(currentIndex, Math.max(0, chapters.length - 1));
@@ -310,6 +313,7 @@ export const AudiobookModal: React.FC<AudiobookModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="audiobook-modal-title"

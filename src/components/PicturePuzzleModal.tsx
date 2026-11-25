@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CheckCircle2,
   Eye,
@@ -23,6 +23,7 @@ import { CHARACTER_REACTION_META } from '../data/characterReactions';
 import { ExplorerReactionAvatar } from './ExplorerReactionAvatar';
 import { soundEngine } from '../utils/audio';
 import { isSpeechSupported, speakText, stopSpeaking } from '../utils/speech';
+import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 
 interface PicturePuzzleModalProps {
   initialRoomId: RoomId;
@@ -157,6 +158,8 @@ export const PicturePuzzleModal: React.FC<PicturePuzzleModalProps> = ({
   const [dragFromSlot, setDragFromSlot] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
   const [justSolved, setJustSolved] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(dialogRef, true);
   const [imgFailed, setImgFailed] = useState(false);
   const [avatarReaction, setAvatarReaction] = useState<CharacterReactionId>(
     'concentrado'
@@ -388,6 +391,7 @@ export const PicturePuzzleModal: React.FC<PicturePuzzleModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="picture-puzzle-title"
