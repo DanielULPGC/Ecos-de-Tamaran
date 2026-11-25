@@ -1,4 +1,4 @@
-import { getApp, getApps, initializeApp } from 'firebase/app';
+import { FirebaseOptions, getApp, getApps, initializeApp } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -6,7 +6,13 @@ import {
   signInWithPopup,
   User,
 } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
+
+const firebaseConfigModules = import.meta.glob<{ default?: FirebaseOptions }>(
+  '../../firebase-applet-config.json',
+  { eager: true }
+);
+const firebaseConfig: FirebaseOptions | null =
+  Object.values(firebaseConfigModules)[0]?.default ?? null;
 
 export const CLASSROOM_SCOPES: string[] = [
   'https://www.googleapis.com/auth/classroom.addons.student',
@@ -41,6 +47,10 @@ let authInitFailed = false;
 function getSafeAuth(): ReturnType<typeof getAuth> | null {
   if (authInstance) return authInstance;
   if (authInitFailed) return null;
+  if (!firebaseConfig || !firebaseConfig.apiKey) {
+    authInitFailed = true;
+    return null;
+  }
   try {
     const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     authInstance = getAuth(app);
