@@ -4,7 +4,10 @@ import {
   DuaSettings,
   ExpeditionState,
   ExplorerId,
+  MetaVaultState,
+  RoomId,
   RoomProgress,
+  TeamTurnsState,
 } from '../types/game';
 import { ROOMS_DATA } from '../data/roomsData';
 import { computeUnlockedBadges } from '../data/charactersAndBadges';
@@ -18,6 +21,19 @@ export const DEFAULT_DUA: DuaSettings = {
   highContrast: false,
   voiceRate: 1.0,
   pictograms: false,
+};
+
+export const DEFAULT_TEAM_TURNS: TeamTurnsState = {
+  enabled: false,
+  autoRotate: true,
+  rotationIndex: 0,
+  memberNames: ['', '', '', ''],
+};
+
+export const DEFAULT_META_VAULT: MetaVaultState = {
+  discoveredInscriptions: [],
+  collectedFragments: [],
+  solved: false,
 };
 
 export function createInitialRoomProgress(): RoomProgress {
@@ -47,7 +63,8 @@ export function createInitialState(
   ambientEnabled = true,
   ambientVolume: AmbientVolumeLevel = 0.55,
   showEscapeTimer = true,
-  teacherMode = false
+  teacherMode = false,
+  teamTurns: TeamTurnsState = DEFAULT_TEAM_TURNS
 ): ExpeditionState {
   return {
     phase: 'TITLE_MENU',
@@ -80,6 +97,21 @@ export function createInitialState(
     atlasLayersCompleted: [],
     timelineSolved: false,
     teacherMode,
+    teamTurns: {
+      ...DEFAULT_TEAM_TURNS,
+      ...teamTurns,
+      memberNames: [
+        teamTurns.memberNames?.[0] ?? '',
+        teamTurns.memberNames?.[1] ?? '',
+        teamTurns.memberNames?.[2] ?? '',
+        teamTurns.memberNames?.[3] ?? '',
+      ],
+    },
+    metaVault: {
+      discoveredInscriptions: [],
+      collectedFragments: [],
+      solved: false,
+    },
   };
 }
 
@@ -227,6 +259,51 @@ export function loadSavedState(): ExpeditionState {
         : [],
       timelineSolved: Boolean(parsed.timelineSolved),
       teacherMode: Boolean(parsed.teacherMode),
+      teamTurns: {
+        enabled: Boolean(parsed.teamTurns?.enabled),
+        autoRotate:
+          typeof parsed.teamTurns?.autoRotate === 'boolean'
+            ? parsed.teamTurns.autoRotate
+            : true,
+        rotationIndex:
+          typeof parsed.teamTurns?.rotationIndex === 'number' &&
+          parsed.teamTurns.rotationIndex >= 0
+            ? Math.floor(parsed.teamTurns.rotationIndex) % 4
+            : 0,
+        memberNames: [
+          typeof parsed.teamTurns?.memberNames?.[0] === 'string'
+            ? parsed.teamTurns.memberNames[0]
+            : '',
+          typeof parsed.teamTurns?.memberNames?.[1] === 'string'
+            ? parsed.teamTurns.memberNames[1]
+            : '',
+          typeof parsed.teamTurns?.memberNames?.[2] === 'string'
+            ? parsed.teamTurns.memberNames[2]
+            : '',
+          typeof parsed.teamTurns?.memberNames?.[3] === 'string'
+            ? parsed.teamTurns.memberNames[3]
+            : '',
+        ],
+      },
+      metaVault: {
+        discoveredInscriptions: Array.isArray(
+          parsed.metaVault?.discoveredInscriptions
+        )
+          ? parsed.metaVault.discoveredInscriptions.filter(
+              (id): id is string => typeof id === 'string'
+            )
+          : [],
+        collectedFragments: Array.isArray(parsed.metaVault?.collectedFragments)
+          ? parsed.metaVault.collectedFragments.filter(
+              (r): r is RoomId =>
+                r === 'aborigenes' ||
+                r === 'conquista' ||
+                r === 'pirateria' ||
+                r === 'sigloXX'
+            )
+          : [],
+        solved: Boolean(parsed.metaVault?.solved),
+      },
     };
 
     return {

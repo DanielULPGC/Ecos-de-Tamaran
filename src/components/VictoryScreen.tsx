@@ -4,6 +4,7 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
+  Compass,
   Download,
   GraduationCap,
   Headphones,
@@ -23,6 +24,7 @@ import { ROOMS_DATA } from '../data/roomsData';
 import { BADGES, getExplorerById } from '../data/charactersAndBadges';
 import { getMoodById, THERMOMETER_MOODS } from '../data/enrichmentData';
 import { formatEscapeTime } from '../data/escapeLocks';
+import { getCollectedPintaderaRooms, SECRET_CHAMBER_RELIC } from '../data/metaVaultData';
 import { downloadReflectionReport } from '../utils/exportSummary';
 import { soundEngine } from '../utils/audio';
 import { StickyNoteCard } from './StickyNoteWidget';
@@ -32,6 +34,7 @@ interface VictoryScreenProps {
   cycle: CycleId;
   onChangeName: (name: string) => void;
   onSelectRoom4AfterMood: (mood: ThermometerMoodId) => void;
+  onOpenMetaVault: () => void;
   onOpenAudiobook: () => void;
   onOpenClassroom: () => void;
   onOpenTeacherGuide: () => void;
@@ -43,12 +46,15 @@ export const VictoryScreen: React.FC<VictoryScreenProps> = ({
   cycle,
   onChangeName,
   onSelectRoom4AfterMood,
+  onOpenMetaVault,
   onOpenAudiobook,
   onOpenClassroom,
   onOpenTeacherGuide,
   onPlayAgain,
 }) => {
   const explorer = getExplorerById(state.explorerId);
+  const pintaderaCount = getCollectedPintaderaRooms(state).length;
+  const metaSolved = Boolean(state.metaVault?.solved);
 
   const entries: JournalEntry[] = ROOMS_DATA.map((room) => state.journal[room.id])
     .filter((entry): entry is JournalEntry => Boolean(entry));
@@ -191,6 +197,42 @@ export const VictoryScreen: React.FC<VictoryScreenProps> = ({
 
         {/* Body */}
         <div className="space-y-6 px-6 py-6 sm:px-8">
+          {/* Secret Chamber / Meta-Vault Banner */}
+          <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#C67D1E]/55 bg-[#1B212A] p-4 sm:p-5 text-[#F5F3EE]">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#C67D1E] text-[#14181F]">
+                <Compass className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <div className="font-mono text-[11px] font-semibold text-[#F3C876]">
+                  {metaSolved
+                    ? 'Cámara Secreta abierta · Reliquia desbloqueada ✓'
+                    : `Meta-cerrojo entre salas · ${pintaderaCount}/4 fragmentos de la Gran Pintadera`}
+                </div>
+                <h2 className="font-display text-lg font-bold text-[#FAF4E8]">
+                  {metaSolved
+                    ? SECRET_CHAMBER_RELIC.title
+                    : '¿Listos para abrir la Cámara Secreta final?'}
+                </h2>
+                <p className="mt-0.5 text-xs text-[#D6D0C4]">
+                  {metaSolved
+                    ? 'Habéis alineado las 4 épocas de Gran Canaria en equipo.'
+                    : 'Unid los 4 fragmentos recogidos en las salas para resolver el enigma cooperativo final.'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenMetaVault}
+              className="no-print inline-flex items-center gap-2 rounded-xl bg-[#C67D1E] px-4 py-2.5 text-xs font-bold text-[#14181F] hover:bg-[#D98E2B] whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <span>
+                {metaSolved ? 'Ver reliquia secreta' : 'Abrir Cámara Secreta'}
+              </span>
+            </button>
+          </section>
+
           {/* Collectible Badges Achieved */}
           <section>
             <div className="flex items-center gap-2">

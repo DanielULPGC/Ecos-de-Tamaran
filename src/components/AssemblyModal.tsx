@@ -9,7 +9,7 @@ import {
   Volume2,
   X,
 } from 'lucide-react';
-import { RoomData } from '../types/game';
+import { RoomData, TeamTurnsState } from '../types/game';
 import {
   ASSEMBLY_FLASH_QUESTIONS,
   COOPERATIVE_ROLES,
@@ -21,19 +21,23 @@ import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
 interface AssemblyModalProps {
   room: RoomData;
   muted: boolean;
+  teamTurns: TeamTurnsState;
+  onUpdateTeamTurns: (next: TeamTurnsState) => void;
+  onRotateTeamTurn: () => void;
   onClose: () => void;
 }
 
 export const AssemblyModal: React.FC<AssemblyModalProps> = ({
   room,
   muted,
+  teamTurns,
+  onUpdateTeamTurns,
+  onRotateTeamTurn,
   onClose,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocusTrap(dialogRef, true);
   const speechAvailable = isSpeechSupported();
-  const [roleOffset, setRoleOffset] = useState(0);
-  const [studentNames, setStudentNames] = useState<string[]>(['', '', '', '']);
   const [votes, setVotes] = useState<[number, number]>([0, 0]);
   const [questionIdx, setQuestionIdx] = useState(0);
 
@@ -46,7 +50,7 @@ export const AssemblyModal: React.FC<AssemblyModalProps> = ({
 
   const handleSpinRoles = () => {
     soundEngine.playPowerUp();
-    setRoleOffset((prev) => (prev + 1) % COOPERATIVE_ROLES.length);
+    onRotateTeamTurn();
   };
 
   const adjustVote = (idx: 0 | 1, delta: 1 | -1) => {
@@ -211,15 +215,15 @@ export const AssemblyModal: React.FC<AssemblyModalProps> = ({
             </div>
           </section>
 
-          {/* 3. Cooperative Classroom Roles Spinner */}
+          {/* 3. Cooperative Classroom Roles Spinner + Persistent Team Turn Bar Controls */}
           <section className="rounded-2xl border border-[#232A34]/15 bg-white p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="font-display text-lg font-bold text-[#171B21]">
-                  Ruleta de Roles Cooperativos
+                  Modo Desafío por Turnos y Roles Cooperativos
                 </h3>
                 <p className="text-xs text-[#526071]">
-                  Escribe 4 nombres (o equipos) y gira los roles al cambiar de sala.
+                  Escribe 4 nombres (o equipos), activa la barra superior para la pizarra digital y rota roles en cada reto.
                 </p>
               </div>
               <button
@@ -232,21 +236,86 @@ export const AssemblyModal: React.FC<AssemblyModalProps> = ({
               </button>
             </div>
 
+            {/* Whiteboard Turn Banner & Auto-Rotation Switches */}
+            <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-[#2A6F4E]/25 bg-[#EEF6F1] px-3.5 py-2.5 text-xs">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={teamTurns.enabled}
+                onClick={() => {
+                  soundEngine.playClick();
+                  onUpdateTeamTurns({
+                    ...teamTurns,
+                    enabled: !teamTurns.enabled,
+                  });
+                }}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 font-bold transition-colors cursor-pointer ${
+                  teamTurns.enabled
+                    ? 'border-[#2A6F4E] bg-[#2A6F4E] text-white'
+                    : 'border-[#232A34]/20 bg-white text-[#232A34] hover:border-[#2A6F4E]'
+                }`}
+              >
+                <span>
+                  {teamTurns.enabled
+                    ? 'Barra de turnos en pantalla: Visible'
+                    : 'Mostrar barra de turnos en pantalla'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={teamTurns.autoRotate}
+                onClick={() => {
+                  soundEngine.playClick();
+                  onUpdateTeamTurns({
+                    ...teamTurns,
+                    autoRotate: !teamTurns.autoRotate,
+                  });
+                }}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 font-semibold transition-colors cursor-pointer ${
+                  teamTurns.autoRotate
+                    ? 'border-[#1D4E89] bg-[#E8F0FA] text-[#1D4E89]'
+                    : 'border-[#232A34]/20 bg-white text-[#526071]'
+                }`}
+              >
+                <span>
+                  {teamTurns.autoRotate
+                    ? 'Rotación automática al resolver retos: Sí'
+                    : 'Rotación automática: No (solo manual)'}
+                </span>
+              </button>
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {COOPERATIVE_ROLES.map((role, idx) => {
-                const nameIndex = (idx + roleOffset) % studentNames.length;
+                const nameIndex =
+                  (idx + teamTurns.rotationIndex) % teamTurns.memberNames.length;
+                const isLead =
+                  idx === teamTurns.rotationIndex % COOPERATIVE_ROLES.length;
                 return (
                   <div
                     key={role.id}
-                    className="rounded-xl border border-[#232A34]/15 bg-[#FAF8F4] p-3.5 space-y-2"
+                    className={`rounded-xl border p-3.5 space-y-2 ${
+                      isLead
+                        ? 'border-[#C67D1E] bg-[#FAF4E8]'
+                        : 'border-[#232A34]/15 bg-[#FAF8F4]'
+                    }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl" aria-hidden="true">
-                        {role.emoji}
-                      </span>
-                      <span className="text-xs font-bold text-[#171B21]">
-                        {role.title}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl" aria-hidden="true">
+                          {role.emoji}
+                        </span>
+                        <span className="text-xs font-bold text-[#171B21]">
+                          {role.title}
+                        </span>
+                      </div>
+                      {isLead && (
+                        <span className="rounded bg-[#C67D1E] px-1.5 py-0.5 text-[10px] font-bold text-[#14181F] shrink-0">
+                          Turno
+                        </span>
+                      )}
                     </div>
                     <p className="text-[11px] leading-snug text-[#4A5564]">
                       {role.task}
@@ -254,14 +323,19 @@ export const AssemblyModal: React.FC<AssemblyModalProps> = ({
                     <input
                       type="text"
                       maxLength={24}
-                      value={studentNames[nameIndex]}
+                      value={teamTurns.memberNames[nameIndex]}
                       onChange={(e) => {
                         const val = e.target.value;
-                        setStudentNames((prev) =>
-                          prev.map((n, i) => (i === nameIndex ? val : n))
-                        );
+                        const nextNames: [string, string, string, string] = [
+                          ...teamTurns.memberNames,
+                        ];
+                        nextNames[nameIndex] = val;
+                        onUpdateTeamTurns({
+                          ...teamTurns,
+                          memberNames: nextNames,
+                        });
                       }}
-                      placeholder={`Alumno/a ${nameIndex + 1}`}
+                      placeholder={`Equipo / Alumno ${nameIndex + 1}`}
                       className="w-full rounded-lg border border-[#232A34]/20 bg-white px-2.5 py-1.5 text-xs font-semibold text-[#171B21] placeholder:font-normal placeholder:text-[#88919E]"
                     />
                   </div>

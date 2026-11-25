@@ -4,6 +4,8 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Compass,
+  Flashlight,
   HelpCircle,
   KeyRound,
   Lock,
@@ -24,6 +26,7 @@ import {
 import { ROOM_EXIT_LOCKS } from '../data/escapeLocks';
 import { getDifficultyProfile } from '../data/difficultyConfig';
 import { SHADOW_CHALLENGES } from '../data/shadowMatchData';
+import type { SceneInscription } from '../data/metaVaultData';
 import { soundEngine } from '../utils/audio';
 import { isSpeechSupported, speakText, stopSpeaking } from '../utils/speech';
 import { useDialogFocusTrap } from '../utils/useDialogFocusTrap';
@@ -35,6 +38,10 @@ interface RoomExitLockModalProps {
   explorer: ExplorerProfile;
   progress: RoomProgress;
   muted: boolean;
+  discoveredLockInscription?: SceneInscription | null;
+  collectedFragmentsCount?: number;
+  onActivateFlashlight?: () => void;
+  onOpenMetaVault?: () => void;
   onJumpToChallenge: (target: 'puzzle1' | 'puzzle2' | 'empathy' | 'clue' | 'shadow') => void;
   onReaction: (reaction: CharacterReactionId, line?: string) => void;
   onDoorUnlocked: () => void;
@@ -49,6 +56,10 @@ export const RoomExitLockModal: React.FC<RoomExitLockModalProps> = ({
   explorer,
   progress,
   muted,
+  discoveredLockInscription = null,
+  collectedFragmentsCount = 0,
+  onActivateFlashlight,
+  onOpenMetaVault,
   onJumpToChallenge,
   onReaction,
   onDoorUnlocked,
@@ -512,7 +523,68 @@ export const RoomExitLockModal: React.FC<RoomExitLockModalProps> = ({
                   </button>
                 )}
               </div>
+
+              <div className="sm:col-span-2 rounded-lg border border-[#F5F3EE]/12 bg-[#151920] p-3 text-xs space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1.5 font-bold text-[#F5F3EE]">
+                    <Flashlight
+                      className="h-3.5 w-3.5 text-[#F3C876]"
+                      aria-hidden="true"
+                    />
+                    <span>Inscripción oculta · Linterna de inspección</span>
+                  </span>
+                  <span
+                    className={
+                      discoveredLockInscription
+                        ? 'font-semibold text-[#74C69D]'
+                        : 'text-[#9AA3B0]'
+                    }
+                  >
+                    {discoveredLockInscription ? 'Revelada ✓' : 'Oculta en la sala'}
+                  </span>
+                </div>
+                {discoveredLockInscription ? (
+                  <p className="text-[#E6C58D] font-mono text-[11px] leading-snug">
+                    {discoveredLockInscription.engraving} —{' '}
+                    <span className="font-sans text-[#C7C1B5]">
+                      {discoveredLockInscription.explanation[cycle]}
+                    </span>
+                  </p>
+                ) : onActivateFlashlight ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopSpeaking();
+                      onActivateFlashlight();
+                    }}
+                    className="text-[11px] font-semibold text-[#F3C876] underline underline-offset-2 hover:text-white cursor-pointer"
+                  >
+                    Encender linterna en la sala para revelar un grabado de ayuda
+                  </button>
+                ) : null}
+              </div>
             </div>
+
+            {isUnlocked && onOpenMetaVault && (
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E6A94F]/40 bg-[#262015] px-3 py-2 text-xs">
+                <span className="inline-flex items-center gap-1.5 font-semibold text-[#F3C876]">
+                  <Compass className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    Cuadrante de la Gran Pintadera guardado ({Math.max(collectedFragmentsCount, room.number)}/4)
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopSpeaking();
+                    onOpenMetaVault();
+                  }}
+                  className="font-bold text-[#FAF4E8] underline underline-offset-2 hover:text-[#F3C876] cursor-pointer"
+                >
+                  Abrir Cámara Secreta
+                </button>
+              </div>
+            )}
           </section>
         </div>
 

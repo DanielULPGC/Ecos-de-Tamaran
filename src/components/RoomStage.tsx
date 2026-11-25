@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Clock,
   Compass,
+  Flashlight,
   Gem,
   Globe2,
   Headphones,
@@ -43,15 +44,22 @@ import {
   RoomEmotionCheck,
   RoomHotspot,
   RoomProgress,
+  TeamTurnsState,
 } from '../types/game';
 import { BADGES } from '../data/charactersAndBadges';
 import { getMoodById } from '../data/enrichmentData';
 import { formatEscapeTime } from '../data/escapeLocks';
 import { getDifficultyProfile } from '../data/difficultyConfig';
+import {
+  getRoomInscriptions,
+  SceneInscription,
+} from '../data/metaVaultData';
 import { RoomShadowChallenge } from '../data/shadowMatchData';
 import { CHARACTER_REACTION_META } from '../data/characterReactions';
 import { ExplorerReactionAvatar } from './ExplorerReactionAvatar';
 import { RoomAtmosphereParticles } from './RoomAtmosphereParticles';
+import { SceneInspectorOverlay } from './SceneInspectorOverlay';
+import { TeamTurnBanner } from './TeamTurnBanner';
 import { isSpeechSupported, speakText } from '../utils/speech';
 import { AMBIENT_SOUNDSCAPE_META } from '../utils/ambientAudio';
 
@@ -79,6 +87,17 @@ interface RoomStageProps {
   muted: boolean;
   voiceAuto: boolean;
   ambientEnabled: boolean;
+  inspectorActive: boolean;
+  discoveredInscriptionIds: string[];
+  pintaderaFragmentsCount: number;
+  metaVaultSolved: boolean;
+  teamTurns: TeamTurnsState;
+  teamTurnJustRotated: boolean;
+  onToggleInspector: () => void;
+  onDiscoverInscription: (inscription: SceneInscription) => void;
+  onOpenMetaVault: () => void;
+  onRotateTeamTurn: () => void;
+  onToggleTeamTurns: () => void;
   onHoverReaction?: (reaction: CharacterReactionId | null) => void;
   onTapAvatar?: () => void;
   onSelectHotspot: (hotspot: RoomHotspot) => void;
@@ -128,6 +147,17 @@ export const RoomStage: React.FC<RoomStageProps> = ({
   muted,
   voiceAuto,
   ambientEnabled,
+  inspectorActive,
+  discoveredInscriptionIds,
+  pintaderaFragmentsCount,
+  metaVaultSolved,
+  teamTurns,
+  teamTurnJustRotated,
+  onToggleInspector,
+  onDiscoverInscription,
+  onOpenMetaVault,
+  onRotateTeamTurn,
+  onToggleTeamTurns,
   onHoverReaction,
   onTapAvatar,
   onSelectHotspot,
@@ -217,8 +247,17 @@ export const RoomStage: React.FC<RoomStageProps> = ({
     Number(progress.puzzle2Solved) +
     Number(progress.empathySolved);
   const allSealsUnlocked = sealsUnlocked === 3;
+  const roomInscriptions = getRoomInscriptions(room.id);
+  const discoveredRoomInscriptions = roomInscriptions.filter((ins) =>
+    discoveredInscriptionIds.includes(ins.id)
+  );
+  const lockInscriptionDiscovered = discoveredRoomInscriptions.find(
+    (ins) => ins.kind === 'lock-clue'
+  );
   const cluesCollectedCount =
-    Number(progress.clueFound) + Number(progress.shadowSolved);
+    Number(progress.clueFound) +
+    Number(progress.shadowSolved) +
+    Number(Boolean(lockInscriptionDiscovered));
 
   const nextCoreLabel = !progress.puzzle1Solved
     ? room.puzzle1.sealTitle
@@ -352,8 +391,37 @@ export const RoomStage: React.FC<RoomStageProps> = ({
           </div>
         </div>
 
-        {/* Right: Clean Escape Room Essentials (Clues, Map, Journal, Audio, Pause) */}
+        {/* Right: Clean Escape Room Essentials (Flashlight, Clues, Map, Journal, Audio, Pause) */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {/* Scene Inspection Flashlight Quick Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              setCluesOpen(false);
+              setBackpackOpen(false);
+              onToggleInspector();
+            }}
+            aria-pressed={inspectorActive}
+            title="Linterna de inspección para revelar grabados y fragmentos ocultos en la sala"
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+              inspectorActive
+                ? 'border-[#F3C876] bg-[#C67D1E] text-[#14181F] shadow-md'
+                : 'border-[#E6A94F]/40 bg-[#171B21]/92 text-[#F3C876] hover:border-[#E6A94F] hover:bg-[#232A34]'
+            }`}
+          >
+            <Flashlight className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden lg:inline">
+              {inspectorActive ? 'Linterna: Sí' : 'Linterna'}
+            </span>
+            <span
+              className={`font-mono text-[11px] tabular-nums ${
+                inspectorActive ? 'text-[#14181F]' : 'text-[#E6A94F]'
+              }`}
+            >
+              · {discoveredRoomInscriptions.length}/{roomInscriptions.length}
+            </span>
+          </button>
+
           {/* Room Clues Inventory Popover */}
           <div ref={cluesRef} className="relative">
             <button
@@ -372,7 +440,7 @@ export const RoomStage: React.FC<RoomStageProps> = ({
               <Search className="h-4 w-4 text-[#90CAF9]" aria-hidden="true" />
               <span>Pistas</span>
               <span className="font-mono text-[#90CAF9] tabular-nums">
-                · {cluesCollectedCount}/2
+                · {cluesCollectedCount}/3
               </span>
             </button>
 
@@ -383,7 +451,7 @@ export const RoomStage: React.FC<RoomStageProps> = ({
                     Carpeta de pistas · Sala {room.number}
                   </span>
                   <span className="font-mono text-[11px] text-[#9AA3B0] tabular-nums">
-                    {cluesCollectedCount}/2
+                    {cluesCollectedCount}/3
                   </span>
                 </div>
 
@@ -449,6 +517,35 @@ export const RoomStage: React.FC<RoomStageProps> = ({
                     {progress.shadowSolved
                       ? shadowChallenge.unlockedClueText[cycle]
                       : 'Empareja los artefactos con su silueta para revelar una pista adicional.'}
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCluesOpen(false);
+                    if (!inspectorActive) onToggleInspector();
+                  }}
+                  className="w-full rounded-lg border border-[#F5F3EE]/12 bg-[#14181F] p-2.5 text-left transition-colors hover:border-[#F3C876] cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-[#F5F3EE]">
+                      3. Grabado oculto (Linterna)
+                    </span>
+                    <span
+                      className={
+                        lockInscriptionDiscovered
+                          ? 'text-[#74C69D] font-semibold'
+                          : 'text-[#F3C876]'
+                      }
+                    >
+                      {lockInscriptionDiscovered ? 'Revelado ✓' : 'Inspeccionar'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-[#B9B3A7] line-clamp-2">
+                    {lockInscriptionDiscovered
+                      ? `${lockInscriptionDiscovered.engraving} — ${lockInscriptionDiscovered.explanation[cycle]}`
+                      : 'Enciende la linterna y recorre la sala para descubrir pistas del cerrojo y fragmentos de la Pintadera.'}
                   </p>
                 </button>
               </div>
@@ -527,6 +624,17 @@ export const RoomStage: React.FC<RoomStageProps> = ({
           </button>
         </div>
       </header>
+
+      {/* Optional Cooperative Team Turn Banner (Whiteboard / Pizarra Digital Mode) */}
+      {teamTurns.enabled && (
+        <TeamTurnBanner
+          teamTurns={teamTurns}
+          justRotated={teamTurnJustRotated}
+          onRotate={onRotateTeamTurn}
+          onOpenConfig={onOpenAssembly}
+          onHide={onToggleTeamTurns}
+        />
+      )}
 
       {/* Main Unobstructed Aspect-Locked Escape Room Playfield */}
       <main
@@ -692,6 +800,19 @@ export const RoomStage: React.FC<RoomStageProps> = ({
               {progress.shadowSolved ? 'Pista extra ✓' : 'Extra · Sombras'}
             </span>
           </button>
+
+          {/* Optional Inspection Flashlight Spotlight Overlay */}
+          {inspectorActive && (
+            <SceneInspectorOverlay
+              roomId={room.id}
+              cycle={cycle}
+              discoveredIds={discoveredInscriptionIds}
+              muted={muted}
+              onDiscoverInscription={onDiscoverInscription}
+              onOpenMetaVault={onOpenMetaVault}
+              onClose={onToggleInspector}
+            />
+          )}
         </div>
       </main>
 
@@ -875,6 +996,44 @@ export const RoomStage: React.FC<RoomStageProps> = ({
                     </span>
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBackpackOpen(false);
+                      onToggleInspector();
+                    }}
+                    className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-semibold cursor-pointer ${
+                      inspectorActive
+                        ? 'border-[#F3C876] bg-[#2D2416] text-[#FAF4E8]'
+                        : 'border-[#F5F3EE]/12 bg-[#14181F] text-[#F5F3EE] hover:border-[#F3C876]'
+                    }`}
+                  >
+                    <Flashlight
+                      className="h-4 w-4 shrink-0 text-[#F3C876]"
+                      aria-hidden="true"
+                    />
+                    <span className="truncate">
+                      Linterna {discoveredRoomInscriptions.length}/{roomInscriptions.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBackpackOpen(false);
+                      onOpenMetaVault();
+                    }}
+                    className="flex items-center gap-2 rounded-lg border border-[#E6A94F]/40 bg-[#231D14] px-2.5 py-2 text-left text-xs font-semibold text-[#FAF4E8] hover:border-[#E6A94F] cursor-pointer"
+                  >
+                    <Compass
+                      className="h-4 w-4 shrink-0 text-[#E6A94F]"
+                      aria-hidden="true"
+                    />
+                    <span className="truncate">
+                      Pintadera {metaVaultSolved ? '✓' : `${pintaderaFragmentsCount}/4`}
+                    </span>
+                  </button>
+
                   {currentCapsuleUnlocked && (
                     <button
                       type="button"
@@ -897,6 +1056,27 @@ export const RoomStage: React.FC<RoomStageProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-1.5 border-t border-[#F5F3EE]/10 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBackpackOpen(false);
+                      onToggleTeamTurns();
+                    }}
+                    className={`col-span-2 inline-flex items-center justify-between gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold cursor-pointer ${
+                      teamTurns.enabled
+                        ? 'border-[#52B788]/60 bg-[#182E24] text-[#D8F3DC]'
+                        : 'border-[#F5F3EE]/10 bg-[#14181F] text-[#D6D0C4] hover:border-[#74C69D] hover:text-white'
+                    }`}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-[#74C69D]" aria-hidden="true" />
+                      <span>Modo Desafío por Turnos</span>
+                    </span>
+                    <span className="font-mono text-[10px]">
+                      {teamTurns.enabled ? 'Activo' : 'Activar'}
+                    </span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => {

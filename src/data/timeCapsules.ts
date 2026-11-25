@@ -1,4 +1,8 @@
 import { CycleId, ExpeditionState, RoomId, RoomProgress } from '../types/game';
+import capsuleAborigenesImg from '../assets/images/capsule_aborigenes_1795536371930.webp';
+import capsuleConquistaImg from '../assets/images/capsule_conquista_1795536376300.webp';
+import capsulePirateriaImg from '../assets/images/capsule_pirateria_1795536373351.webp';
+import capsuleSigloXxImg from '../assets/images/capsule_siglo_xx_1795536374289.webp';
 
 export interface TimeCapsuleDefinition {
   roomId: RoomId;
@@ -22,7 +26,7 @@ export const TIME_CAPSULES: TimeCapsuleDefinition[] = [
     eventTag: 'Poblado canarii · Época prehispánica',
     historicalDate: 'Siglo XIV (antes de 1478)',
     location: 'Agáldar · Norte de Gran Canaria',
-    imagePath: '/src/assets/images/capsule_aborigenes_1795536371930.webp',
+    imagePath: capsuleAborigenesImg,
     imageAlt:
       'Ilustración histórica del poblado aborigen de Agáldar en Gran Canaria con cuevas, casas de piedra, alfarería, pintaderas y cosecha de cebada.',
     summary: {
@@ -45,7 +49,7 @@ export const TIME_CAPSULES: TimeCapsuleDefinition[] = [
     eventTag: 'Origen de la ciudad · Siglo XV',
     historicalDate: '24 de junio de 1478',
     location: 'Desembocadura del barranco de Guiniguada',
-    imagePath: '/src/assets/images/capsule_conquista_1795536376300.webp',
+    imagePath: capsuleConquistaImg,
     imageAlt:
       'Ilustración histórica de la fundación del Real de Las Palmas junto al palmeral del barranco de Guiniguada en 1478, con carabelas en la bahía y primeras construcciones.',
     summary: {
@@ -68,7 +72,7 @@ export const TIME_CAPSULES: TimeCapsuleDefinition[] = [
     eventTag: 'Defensa costera atlántica · Siglo XVI',
     historicalDate: 'Junio de 1599',
     location: 'Castillo de San Cristóbal · Bahía de Las Palmas',
-    imagePath: '/src/assets/images/capsule_pirateria_1795536373351.webp',
+    imagePath: capsulePirateriaImg,
     imageAlt:
       'Ilustración histórica del Castillo de San Cristóbal al anochecer en 1599, con fuegos de aviso en las torres costeras y naves de la armada holandesa en el horizonte atlántico.',
     summary: {
@@ -91,7 +95,7 @@ export const TIME_CAPSULES: TimeCapsuleDefinition[] = [
     eventTag: 'Memoria migratoria y portuaria · Siglo XX',
     historicalDate: 'Década de 1950 (1952)',
     location: 'Puerto de La Luz · Las Palmas de Gran Canaria',
-    imagePath: '/src/assets/images/capsule_siglo_xx_1795536374289.webp',
+    imagePath: capsuleSigloXxImg,
     imageAlt:
       'Ilustración histórica del Puerto de La Luz en 1952 con un gran barco de pasajeros, familias despidiéndose con pañuelos, maletas de cuero y cajas de plátanos y tomates.',
     summary: {

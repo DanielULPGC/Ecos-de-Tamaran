@@ -7,6 +7,7 @@ import {
   BookOpen,
   ClipboardList,
   Clock,
+  Compass,
   GraduationCap,
   Headphones,
   Home,
@@ -19,6 +20,7 @@ import {
   RotateCcw,
   Ship,
   Trophy,
+  Users,
   Volume2,
   VolumeX,
   Waves,
@@ -60,6 +62,9 @@ interface PauseModalProps {
   unlockedDoorRooms?: RoomId[];
   accessibleRoomIndices?: number[];
   teacherMode?: boolean;
+  metaVaultFragmentsCount?: number;
+  metaVaultSolved?: boolean;
+  teamTurnsEnabled?: boolean;
   classroomUserEmail?: string | null;
   onResume: () => void;
   onChangeCycle: (cycle: CycleId) => void;
@@ -67,6 +72,8 @@ interface PauseModalProps {
   onJumpToRoom: (roomIndex: number) => void;
   onToggleEscapeTimer: () => void;
   onToggleTeacherMode: () => void;
+  onToggleTeamTurns: () => void;
+  onOpenMetaVault: () => void;
   onToggleMute: () => void;
   onToggleVoiceAuto: () => void;
   onToggleAmbient: () => void;
@@ -110,6 +117,9 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   unlockedDoorRooms = [],
   accessibleRoomIndices = [0],
   teacherMode = false,
+  metaVaultFragmentsCount = 0,
+  metaVaultSolved = false,
+  teamTurnsEnabled = false,
   classroomUserEmail = null,
   onResume,
   onChangeCycle,
@@ -117,6 +127,8 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onJumpToRoom,
   onToggleEscapeTimer,
   onToggleTeacherMode,
+  onToggleTeamTurns,
+  onOpenMetaVault,
   onToggleMute,
   onToggleVoiceAuto,
   onToggleAmbient,
@@ -404,6 +416,58 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               <span className="font-mono text-xs font-bold text-[#8A5410] tabular-nums whitespace-nowrap shrink-0">
                 {badgesUnlockedCount}/{badgesTotal}
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenMetaVault}
+              className="flex items-center gap-3 rounded-xl border border-[#C67D1E]/55 bg-[#231D14] px-3.5 py-3 text-left text-[#FAF4E8] transition-colors hover:border-[#E6A94F] hover:bg-[#2E2519] cursor-pointer"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#C67D1E] text-[#14181F]">
+                <Compass className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-[#FAF4E8]">
+                  Cámara Secreta
+                </div>
+                <div className="font-mono text-[11px] leading-snug text-[#F3C876] tabular-nums">
+                  {metaVaultSolved
+                    ? 'Gran Pintadera abierta ✓'
+                    : `${metaVaultFragmentsCount}/4 fragmentos`}
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={teamTurnsEnabled}
+              onClick={onToggleTeamTurns}
+              className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors cursor-pointer ${
+                teamTurnsEnabled
+                  ? 'border-[#2A6F4E] bg-[#E8F3EC] hover:bg-[#DDF0E4]'
+                  : 'border-[#232A34]/20 bg-white hover:border-[#2A6F4E]'
+              }`}
+            >
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                  teamTurnsEnabled
+                    ? 'bg-[#2A6F4E] text-white'
+                    : 'bg-[#EAE6DC] text-[#3E4856]'
+                }`}
+              >
+                <Users className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-[#171B21]">
+                  Turnos de Equipo
+                </div>
+                <div className="text-[11px] leading-snug text-[#1D543A]">
+                  {teamTurnsEnabled
+                    ? 'Barra activa en pizarra'
+                    : 'Activar rotación de roles'}
+                </div>
+              </div>
             </button>
 
             <button

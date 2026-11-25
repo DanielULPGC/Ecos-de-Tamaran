@@ -1,7 +1,11 @@
 import { RoomData } from '../types/game';
+import titleDeskImg from '../assets/images/title_gran_canaria_desk_1795510912080.webp';
+import room1Img from '../assets/images/room_1_cueva_canarii_1795510911609.webp';
+import room2Img from '../assets/images/room_2_archivo_guiniguada_1795510910907.webp';
+import room3Img from '../assets/images/room_3_atalaya_san_cristobal_1795510911678.webp';
+import room4Img from '../assets/images/room_4_muelle_la_luz_1795510911207.webp';
 
-export const TITLE_ART_PATH =
-  '/src/assets/images/title_gran_canaria_desk_1795510912080.webp';
+export const TITLE_ART_PATH = titleDeskImg;
 
 export const ROOMS_DATA: RoomData[] = [
   {
@@ -12,7 +16,7 @@ export const ROOMS_DATA: RoomData[] = [
     title: 'La Cueva de los Canarii',
     location: 'Agáldar y Cenobio de Valerón · Gran Canaria',
     mapZoneLabel: 'Norte · Gáldar',
-    imagePath: '/src/assets/images/room_1_cueva_canarii_1795510911609.webp',
+    imagePath: room1Img,
     fallbackGradient: 'linear-gradient(135deg, #3c2f27 0%, #634a39 50%, #2d3e36 100%)',
     arrivalNarrative: {
       ciclo2:
@@ -320,7 +324,7 @@ export const ROOMS_DATA: RoomData[] = [
     title: 'El Archivo del Real de Las Palmas',
     location: 'Barranco de Guiniguada · Gran Canaria',
     mapZoneLabel: 'Este · Guiniguada',
-    imagePath: '/src/assets/images/room_2_archivo_guiniguada_1795510910907.webp',
+    imagePath: room2Img,
     fallbackGradient: 'linear-gradient(135deg, #2d3642 0%, #524739 50%, #2a3e4d 100%)',
     arrivalNarrative: {
       ciclo2:
@@ -679,7 +683,7 @@ export const ROOMS_DATA: RoomData[] = [
     title: 'La Atalaya de San Cristóbal',
     location: 'Costa de Las Palmas · Castillo de la Luz',
     mapZoneLabel: 'Costa · San Cristóbal',
-    imagePath: '/src/assets/images/room_3_atalaya_san_cristobal_1795510911678.webp',
+    imagePath: room3Img,
     fallbackGradient: 'linear-gradient(135deg, #1a334a 0%, #3d4854 52%, #594433 100%)',
     arrivalNarrative: {
       ciclo2:
@@ -1020,7 +1024,7 @@ export const ROOMS_DATA: RoomData[] = [
     title: 'El Muelle de La Luz y la Memoria Viva',
     location: 'Puerto de La Luz y Cumbres · Gran Canaria',
     mapZoneLabel: 'Puerto y Cumbres',
-    imagePath: '/src/assets/images/room_4_muelle_la_luz_1795510911207.webp',
+    imagePath: room4Img,
     fallbackGradient: 'linear-gradient(135deg, #1d3c57 0%, #4b5d67 52%, #6b533b 100%)',
     arrivalNarrative: {
       ciclo2:

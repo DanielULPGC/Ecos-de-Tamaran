@@ -35,8 +35,21 @@ export const CLASSROOM_SCOPES: string[] = [
   'https://www.googleapis.com/auth/classroom.topics.readonly',
 ];
 
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
+let authInstance: ReturnType<typeof getAuth> | null = null;
+let authInitFailed = false;
+
+function getSafeAuth(): ReturnType<typeof getAuth> | null {
+  if (authInstance) return authInstance;
+  if (authInitFailed) return null;
+  try {
+    const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    authInstance = getAuth(app);
+    return authInstance;
+  } catch {
+    authInitFailed = true;
+    return null;
+  }
+}
 
 const provider = new GoogleAuthProvider();
 for (const scope of CLASSROOM_SCOPES) {
@@ -54,25 +67,41 @@ export const initClassroomAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: (user: User | null) => void
 ) => {
-  return onAuthStateChanged(auth, (user: User | null) => {
-    if (user) {
-      if (cachedAccessToken) {
-        onAuthSuccess?.(user, cachedAccessToken);
-      } else if (!isSigningIn) {
+  const auth = getSafeAuth();
+  if (!auth) {
+    onAuthFailure?.(null);
+    return () => {};
+  }
+  try {
+    return onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        if (cachedAccessToken) {
+          onAuthSuccess?.(user, cachedAccessToken);
+        } else if (!isSigningIn) {
+          cachedAccessToken = null;
+          onAuthFailure?.(user);
+        }
+      } else {
         cachedAccessToken = null;
-        onAuthFailure?.(user);
+        onAuthFailure?.(null);
       }
-    } else {
-      cachedAccessToken = null;
-      onAuthFailure?.(null);
-    }
-  });
+    });
+  } catch {
+    onAuthFailure?.(null);
+    return () => {};
+  }
 };
 
 export const googleClassroomSignIn = async (): Promise<{
   user: User;
   accessToken: string;
 }> => {
+  const auth = getSafeAuth();
+  if (!auth) {
+    throw new Error(
+      'El servicio de inicio de sesión de Google Classroom no está disponible en este dominio o navegador.'
+    );
+  }
   try {
     isSigningIn = true;
     const result = await signInWithPopup(auth, provider);
@@ -95,9 +124,13 @@ export const clearClassroomAccessToken = (): void => {
   cachedAccessToken = null;
 };
 
-export const getCurrentClassroomUser = (): User | null => auth.currentUser;
+export const getCurrentClassroomUser = (): User | null =>
+  getSafeAuth()?.currentUser ?? null;
 
 export const classroomSignOut = async (): Promise<void> => {
   cachedAccessToken = null;
-  await auth.signOut();
+  const auth = getSafeAuth();
+  if (auth) {
+    await auth.signOut();
+  }
 };

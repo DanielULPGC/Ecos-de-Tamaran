@@ -111,6 +111,19 @@ export interface DuaSettings {
   pictograms: boolean;
 }
 
+export interface TeamTurnsState {
+  enabled: boolean;
+  autoRotate: boolean;
+  rotationIndex: number;
+  memberNames: [string, string, string, string];
+}
+
+export interface MetaVaultState {
+  discoveredInscriptions: string[];
+  collectedFragments: RoomId[];
+  solved: boolean;
+}
+
 export interface TransversalMission {
   roomId: RoomId;
   axis: 'Coeducación e Igualdad' | 'Convivencia y Derechos' | 'Alfabetización Mediática' | 'Sostenibilidad · ODS';
@@ -467,6 +480,8 @@ export interface ExpeditionState {
   atlasLayersCompleted: AtlasLayerId[];
   timelineSolved: boolean;
   teacherMode: boolean;
+  teamTurns: TeamTurnsState;
+  metaVault: MetaVaultState;
 }
 
 export interface CodedEvaluationCriterion {

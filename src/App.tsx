@@ -22,6 +22,7 @@ import {
   RoomId,
   RoomProgress,
   StickyNote,
+  TeamTurnsState,
   ThermometerMoodId,
 } from './types/game';
 import { ROOMS_DATA } from './data/roomsData';
@@ -75,6 +76,11 @@ import {
   getTimeCapsuleByRoom,
   getUnlockedTimeCapsuleRoomIds,
 } from './data/timeCapsules';
+import {
+  getCollectedPintaderaRooms,
+  getDiscoveredRoomInscriptions,
+  SceneInscription,
+} from './data/metaVaultData';
 
 const PuzzleModal = lazy(() =>
   import('./components/PuzzleModal').then((m) => ({ default: m.PuzzleModal }))
@@ -150,6 +156,11 @@ const GoogleClassroomModal = lazy(() =>
     default: m.GoogleClassroomModal,
   }))
 );
+const MetaVaultModal = lazy(() =>
+  import('./components/MetaVaultModal').then((m) => ({
+    default: m.MetaVaultModal,
+  }))
+);
 
 type ActiveModal =
   | null
@@ -174,6 +185,7 @@ type ActiveModal =
   | { type: 'timeCapsule'; roomId: RoomId; isNew?: boolean }
   | { type: 'explorerAchievements' }
   | { type: 'exitLock' }
+  | { type: 'metaVault' }
   | { type: 'classroom'; defaultMode?: ClassroomLaunchMode }
   | { type: 'teacher' };
 
@@ -198,6 +210,9 @@ export default function App() {
     useState<CharacterReactionId | null>(null);
   const reactionTimerRef = useRef<number | null>(null);
   const [classroomUser, setClassroomUser] = useState<FirebaseUser | null>(null);
+  const [inspectorActive, setInspectorActive] = useState(false);
+  const [teamTurnJustRotated, setTeamTurnJustRotated] = useState(false);
+  const turnPulseTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const unsubscribe = initClassroomAuth(
@@ -210,6 +225,72 @@ export default function App() {
   const explorer = getExplorerById(state.explorerId);
   const currentRoom = ROOMS_DATA[state.currentRoomIndex] ?? ROOMS_DATA[0];
   const currentProgress = state.progress[currentRoom.id];
+
+  const triggerTurnRotationPulse = useCallback(() => {
+    if (turnPulseTimerRef.current) {
+      window.clearTimeout(turnPulseTimerRef.current);
+    }
+    setTeamTurnJustRotated(true);
+    turnPulseTimerRef.current = window.setTimeout(() => {
+      setTeamTurnJustRotated(false);
+    }, 2800);
+  }, []);
+
+  const handleRotateTeamTurn = useCallback(
+    (playAudio = true) => {
+      if (playAudio) soundEngine.playPowerUp();
+      setState((prev) => ({
+        ...prev,
+        teamTurns: {
+          ...prev.teamTurns,
+          rotationIndex: (prev.teamTurns.rotationIndex + 1) % 4,
+        },
+      }));
+      triggerTurnRotationPulse();
+    },
+    [triggerTurnRotationPulse]
+  );
+
+  const rotateTeamTurnIfAuto = useCallback(() => {
+    setState((prev) => {
+      if (!prev.teamTurns.enabled || !prev.teamTurns.autoRotate) return prev;
+      triggerTurnRotationPulse();
+      return {
+        ...prev,
+        teamTurns: {
+          ...prev.teamTurns,
+          rotationIndex: (prev.teamTurns.rotationIndex + 1) % 4,
+        },
+      };
+    });
+  }, [triggerTurnRotationPulse]);
+
+  const handleUpdateTeamTurns = useCallback((next: TeamTurnsState) => {
+    setState((prev) => ({ ...prev, teamTurns: next }));
+  }, []);
+
+  const handleToggleTeamTurns = useCallback(() => {
+    soundEngine.playClick();
+    setState((prev) => ({
+      ...prev,
+      teamTurns: {
+        ...prev.teamTurns,
+        enabled: !prev.teamTurns.enabled,
+      },
+    }));
+  }, []);
+
+  useEffect(() => {
+    setInspectorActive(false);
+  }, [state.currentRoomIndex, state.phase]);
+
+  useEffect(() => {
+    return () => {
+      if (turnPulseTimerRef.current) {
+        window.clearTimeout(turnPulseTimerRef.current);
+      }
+    };
+  }, []);
 
   const triggerCharacterReaction = useCallback(
     (reaction: CharacterReactionId, line?: string) => {
@@ -425,7 +506,8 @@ export default function App() {
         prev.ambientEnabled,
         prev.ambientVolume,
         prev.showEscapeTimer,
-        prev.teacherMode
+        prev.teacherMode,
+        prev.teamTurns
       ),
       phase: 'PLAYING',
     }));
@@ -446,7 +528,8 @@ export default function App() {
         prev.ambientEnabled,
         prev.ambientVolume,
         prev.showEscapeTimer,
-        prev.teacherMode
+        prev.teacherMode,
+        prev.teamTurns
       )
     );
   }, []);
@@ -626,6 +709,7 @@ export default function App() {
       `¡${currentRoom.empathy.sealTitle} conseguido!`,
       entry
     );
+    rotateTeamTurnIfAuto();
     const willCompleteAllSeals =
       currentProgress.puzzle1Solved && currentProgress.puzzle2Solved;
     triggerCharacterReaction(
@@ -740,6 +824,65 @@ export default function App() {
         (room) => room.id
       ),
     [state.progress]
+  );
+
+  const pintaderaCollectedRooms = useMemo(
+    () => getCollectedPintaderaRooms(state),
+    [state]
+  );
+
+  const currentDiscoveredLockInscription = useMemo(
+    () =>
+      getDiscoveredRoomInscriptions(state, currentRoom.id).find(
+        (ins) => ins.kind === 'lock-clue'
+      ) ?? null,
+    [state, currentRoom.id]
+  );
+
+  const handleDiscoverInscription = useCallback(
+    (inscription: SceneInscription) => {
+      setState((prev) => {
+        const alreadyDiscovered = prev.metaVault.discoveredInscriptions.includes(
+          inscription.id
+        );
+        const nextDiscovered = alreadyDiscovered
+          ? prev.metaVault.discoveredInscriptions
+          : [...prev.metaVault.discoveredInscriptions, inscription.id];
+
+        const addsFragment =
+          inscription.kind === 'pintadera-fragment' &&
+          !prev.metaVault.collectedFragments.includes(inscription.roomId);
+        const nextFragments = addsFragment
+          ? [...prev.metaVault.collectedFragments, inscription.roomId]
+          : prev.metaVault.collectedFragments;
+
+        if (alreadyDiscovered && !addsFragment) return prev;
+
+        return {
+          ...prev,
+          metaVault: {
+            ...prev.metaVault,
+            discoveredInscriptions: nextDiscovered,
+            collectedFragments: nextFragments,
+          },
+        };
+      });
+
+      if (inscription.kind === 'pintadera-fragment') {
+        triggerCelebration(`¡Fragmento descubierto: ${inscription.title}!`);
+        triggerCharacterReaction(
+          'sorpresa',
+          `¡Increíble hallazgo con la linterna! Has encontrado un cuadrante de la Gran Pintadera.`
+        );
+      } else {
+        triggerCelebration(`¡Grabado revelado: ${inscription.title}!`);
+        triggerCharacterReaction(
+          'sorpresa',
+          `¡Mira ese grabado oculto! Te ayudará a descifrar el cerrojo de salida.`
+        );
+      }
+    },
+    [triggerCelebration, triggerCharacterReaction]
   );
 
   const accessibleRoomIndices = useMemo(
@@ -885,6 +1028,7 @@ export default function App() {
         ROOMS_DATA.length - 1
       ),
     }));
+    rotateTeamTurnIfAuto();
   };
 
   const companionLine =
@@ -986,6 +1130,25 @@ export default function App() {
           muted={state.muted}
           voiceAuto={state.voiceAuto}
           ambientEnabled={state.ambientEnabled}
+          inspectorActive={inspectorActive}
+          discoveredInscriptionIds={state.metaVault.discoveredInscriptions}
+          pintaderaFragmentsCount={pintaderaCollectedRooms.length}
+          metaVaultSolved={state.metaVault.solved}
+          teamTurns={state.teamTurns}
+          teamTurnJustRotated={teamTurnJustRotated}
+          onToggleInspector={() => {
+            soundEngine.playClick();
+            setInspectorActive((prev) => !prev);
+          }}
+          onDiscoverInscription={handleDiscoverInscription}
+          onOpenMetaVault={() => {
+            stopSpeaking();
+            setInspectorActive(false);
+            soundEngine.playClick();
+            setActiveModal({ type: 'metaVault' });
+          }}
+          onRotateTeamTurn={() => handleRotateTeamTurn(true)}
+          onToggleTeamTurns={handleToggleTeamTurns}
           onHoverReaction={setHoverReaction}
           onTapAvatar={handleTapCompanionAvatar}
           onSelectHotspot={handleSelectHotspot}
@@ -1000,6 +1163,7 @@ export default function App() {
           onOpenExitLock={() => {
             stopSpeaking();
             setHoverReaction(null);
+            setInspectorActive(false);
             soundEngine.playLockTick();
             triggerCharacterReaction('concentrado');
             setActiveModal({ type: 'exitLock' });
@@ -1129,6 +1293,10 @@ export default function App() {
           onSelectRoom4AfterMood={(mood) =>
             handleSetRoomMood('sigloXX', 'after', mood)
           }
+          onOpenMetaVault={() => {
+            soundEngine.playClick();
+            setActiveModal({ type: 'metaVault' });
+          }}
           onOpenAudiobook={() => {
             soundEngine.playClick();
             setActiveModal({ type: 'audiobook' });
@@ -1185,6 +1353,7 @@ export default function App() {
               (p) => ({ ...p, puzzle1Solved: true }),
               `¡${currentRoom.puzzle1.sealTitle} desbloqueado!`
             );
+            rotateTeamTurnIfAuto();
             const willCompleteAllSeals =
               currentProgress.puzzle2Solved && currentProgress.empathySolved;
             triggerCharacterReaction(
@@ -1225,6 +1394,7 @@ export default function App() {
               (p) => ({ ...p, puzzle2Solved: true }),
               `¡${currentRoom.puzzle2.sealTitle} desbloqueado!`
             );
+            rotateTeamTurnIfAuto();
             const willCompleteAllSeals =
               currentProgress.puzzle1Solved && currentProgress.empathySolved;
             triggerCharacterReaction(
@@ -1269,6 +1439,19 @@ export default function App() {
           explorer={explorer}
           progress={currentProgress}
           muted={state.muted}
+          discoveredLockInscription={currentDiscoveredLockInscription}
+          collectedFragmentsCount={pintaderaCollectedRooms.length}
+          onActivateFlashlight={() => {
+            setActiveModal(null);
+            setInspectorActive(true);
+            setCompanionOverride(
+              '¡Linterna encendida! Mueve el foco sobre el escenario para descubrir grabados ocultos.'
+            );
+          }}
+          onOpenMetaVault={() => {
+            soundEngine.playClick();
+            setActiveModal({ type: 'metaVault' });
+          }}
           onJumpToChallenge={(target) => {
             soundEngine.playClick();
             if (target === 'clue' && !currentProgress.clueFound) {
@@ -1288,11 +1471,47 @@ export default function App() {
                 (p) => ({ ...p, doorUnlocked: true }),
                 `¡Puerta abierta en Sala ${currentRoom.number}!`
               );
+              setState((prev) => ({
+                ...prev,
+                metaVault: {
+                  ...prev.metaVault,
+                  collectedFragments: prev.metaVault.collectedFragments.includes(
+                    currentRoom.id
+                  )
+                    ? prev.metaVault.collectedFragments
+                    : [...prev.metaVault.collectedFragments, currentRoom.id],
+                },
+              }));
             }
           }}
           onEscapeRoom={() => {
             setActiveModal(null);
             handleAdvanceRoom();
+          }}
+          onClose={() => {
+            stopSpeaking();
+            setActiveModal(null);
+          }}
+        />
+      )}
+
+      {activeModal?.type === 'metaVault' && (
+        <MetaVaultModal
+          state={state}
+          cycle={state.cycle}
+          muted={state.muted}
+          onReaction={triggerCharacterReaction}
+          onSolved={() => {
+            setState((prev) => ({
+              ...prev,
+              metaVault: {
+                ...prev.metaVault,
+                solved: true,
+              },
+            }));
+            triggerCelebration(
+              '¡Cámara Secreta abierta · Gran Pintadera de Tamarán restaurada!'
+            );
           }}
           onClose={() => {
             stopSpeaking();
@@ -1345,6 +1564,9 @@ export default function App() {
         <AssemblyModal
           room={currentRoom}
           muted={state.muted}
+          teamTurns={state.teamTurns}
+          onUpdateTeamTurns={handleUpdateTeamTurns}
+          onRotateTeamTurn={() => handleRotateTeamTurn(false)}
           onClose={() => {
             stopSpeaking();
             setActiveModal(null);
@@ -1597,6 +1819,9 @@ export default function App() {
           unlockedDoorRooms={unlockedDoorRooms}
           accessibleRoomIndices={accessibleRoomIndices}
           teacherMode={state.teacherMode}
+          metaVaultFragmentsCount={pintaderaCollectedRooms.length}
+          metaVaultSolved={state.metaVault.solved}
+          teamTurnsEnabled={state.teamTurns.enabled}
           classroomUserEmail={classroomUser?.email ?? null}
           onResume={() => {
             soundEngine.playClick();
@@ -1634,6 +1859,11 @@ export default function App() {
               ...prev,
               teacherMode: !prev.teacherMode,
             }));
+          }}
+          onToggleTeamTurns={handleToggleTeamTurns}
+          onOpenMetaVault={() => {
+            soundEngine.playClick();
+            setActiveModal({ type: 'metaVault' });
           }}
           onToggleMute={() =>
             setState((prev) => ({ ...prev, muted: !prev.muted }))

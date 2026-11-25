@@ -5,6 +5,10 @@ import {
   ExplorerId,
   ExplorerProfile,
 } from '../types/game';
+import explorerNayraImg from '../assets/images/explorer_nayra_1795513462633.webp';
+import explorerAdayImg from '../assets/images/explorer_aday_1795513464407.webp';
+import explorerSofiaImg from '../assets/images/explorer_sofia_1795513467583.webp';
+import explorerYerayImg from '../assets/images/explorer_yeray_1795513466465.webp';
 
 export const EXPLORERS: ExplorerProfile[] = [
   {
@@ -15,7 +19,7 @@ export const EXPLORERS: ExplorerProfile[] = [
     powerShort: 'Pista visual gratis al instante',
     powerDetail:
       'En cada reto, su lupa revela gratis la pista 1 y señala detalles ocultos.',
-    portraitPath: '/src/assets/images/explorer_nayra_1795513462633.webp',
+    portraitPath: explorerNayraImg,
     accentHex: '#2A6F4E',
     greeting: '¡Con mi lupa encontraremos cada secreto de la isla!',
     cheerLines: [
@@ -81,7 +85,7 @@ export const EXPLORERS: ExplorerProfile[] = [
     powerShort: 'Guía emocional en dilemas',
     powerDetail:
       'Ilumina la clave emocional de los personajes y desbloquea ideas rápidas.',
-    portraitPath: '/src/assets/images/explorer_aday_1795513464407.webp',
+    portraitPath: explorerAdayImg,
     accentHex: '#C67D1E',
     greeting: '¡Escuchemos a cada personaje para abrir todas las puertas!',
     cheerLines: [
@@ -147,7 +151,7 @@ export const EXPLORERS: ExplorerProfile[] = [
     powerShort: 'Resuelve 1 pieza por reto',
     powerDetail:
       'Su catalejo coloca o marca automáticamente una pieza correcta en cada minijuego.',
-    portraitPath: '/src/assets/images/explorer_sofia_1795513467583.webp',
+    portraitPath: explorerSofiaImg,
     accentHex: '#1D4E89',
     greeting: '¡Rumbo firme! Mi sextante nos dará ventaja en cada enigma.',
     cheerLines: [
@@ -213,7 +217,7 @@ export const EXPLORERS: ExplorerProfile[] = [
     powerShort: 'Marca en verde tus aciertos',
     powerDetail:
       'Comprueba qué piezas ya tienes bien en cada reto para afinar sin perder ritmo.',
-    portraitPath: '/src/assets/images/explorer_yeray_1795513466465.webp',
+    portraitPath: explorerYerayImg,
     accentHex: '#9C5A25',
     greeting: '¡Manos a la obra! Probemos ideas hasta que todo encaje.',
     cheerLines: [
