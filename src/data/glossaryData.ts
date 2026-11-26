@@ -103,7 +103,8 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     simpleDefinition:
       'Conjunto de nombres de pueblos, barrancos y montañas. Muchos lugares de Gran Canaria conservan su nombre aborigen.',
     pictogramSteps: ['⛰️ Lugar', '🗣️ Nombre', '⏳ Memoria'],
-    example: 'Telde, Gáldar, Arucas y Guiniguada son ejemplos de toponimia canarii.',
+    example:
+      'Telde, Gáldar, Arucas y Guiniguada sí son topónimos aborígenes reales (en cambio, «Tamarán» es un nombre literario inventado en el siglo XIX).',
     iconKey: 'toponimia',
   },
   {

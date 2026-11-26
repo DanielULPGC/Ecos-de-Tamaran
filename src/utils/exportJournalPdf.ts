@@ -61,7 +61,7 @@ export async function exportJournalToPdf(
   const bottomLimit = pageHeight - 18;
 
   const studentName = toPdfText(
-    state.explorerName.trim() || 'Equipo Explorador de Tamarán'
+    state.explorerName.trim() || 'Equipo Explorador de Gran Canaria'
   );
   const explorer = getExplorerById(state.explorerId);
   const cycleLabel =

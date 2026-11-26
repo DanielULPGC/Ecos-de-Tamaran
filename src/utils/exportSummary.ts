@@ -27,7 +27,7 @@ export function downloadReflectionReport(
   emotions?: Partial<Record<RoomId, RoomEmotionCheck>>,
   meta?: ReflectionReportMeta
 ) {
-  const safeName = explorerName.trim() || 'Equipo Explorador de Tamarán';
+  const safeName = explorerName.trim() || 'Equipo Explorador de Gran Canaria';
   const difficulty = getDifficultyProfile(cycle);
   const cycleLabel =
     cycle === 'ciclo2'

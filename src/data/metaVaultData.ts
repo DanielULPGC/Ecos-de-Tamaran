@@ -66,7 +66,7 @@ export const SCENE_INSCRIPTIONS: Record<RoomId, SceneInscription[]> = {
         ciclo2:
           '¡Has descubierto el primer trozo de la Gran Pintadera! Guarda el símbolo del Sol de Gáldar para la Cámara Secreta final.',
         ciclo3:
-          'Primer cuadrante de la Gran Pintadera de Tamarán: símbolo geométrico canarii del norte de la isla, clave para el meta-cerrojo entre las 4 épocas.',
+          'Primer cuadrante de la Gran Pintadera de Gran Canaria: símbolo geométrico canarii del norte de la isla, clave para el meta-cerrojo entre las 4 épocas.',
       },
       dialHintLabel: 'Fragmento 1/4 para la Cámara Secreta',
     },
@@ -102,7 +102,7 @@ export const SCENE_INSCRIPTIONS: Record<RoomId, SceneInscription[]> = {
         ciclo2:
           '¡Segundo trozo de la Gran Pintadera encontrado! Representa el palmeral donde nació Las Palmas y el valor del diálogo.',
         ciclo3:
-          'Segundo cuadrante de la Gran Pintadera de Tamarán: emblema del encuentro cultural en el barranco de Guiniguada (1478–1483).',
+          'Segundo cuadrante de la Gran Pintadera de Gran Canaria: emblema del encuentro cultural en el barranco de Guiniguada (1478–1483).',
       },
       dialHintLabel: 'Fragmento 2/4 para la Cámara Secreta',
     },
@@ -138,7 +138,7 @@ export const SCENE_INSCRIPTIONS: Record<RoomId, SceneInscription[]> = {
         ciclo2:
           '¡Tercer trozo de la Gran Pintadera hallado! Su señal de fuego recuerda cómo la isla se protegió trabajando unida.',
         ciclo3:
-          'Tercer cuadrante de la Gran Pintadera de Tamarán: la llama de vigilancia de San Cristóbal que unió costa y cumbre en 1599.',
+          'Tercer cuadrante de la Gran Pintadera de Gran Canaria: la llama de vigilancia de San Cristóbal que unió costa y cumbre en 1599.',
       },
       dialHintLabel: 'Fragmento 3/4 para la Cámara Secreta',
     },
@@ -174,7 +174,7 @@ export const SCENE_INSCRIPTIONS: Record<RoomId, SceneInscription[]> = {
         ciclo2:
           '¡Último trozo de la Gran Pintadera! Une el océano, el agua de las cumbres y la memoria de nuestras familias.',
         ciclo3:
-          'Cuarto cuadrante de la Gran Pintadera de Tamarán: símbolo de sostenibilidad hídrica y puente atlántico del Puerto de La Luz.',
+          'Cuarto cuadrante de la Gran Pintadera de Gran Canaria: símbolo de sostenibilidad hídrica y puente atlántico del Puerto de La Luz.',
       },
       dialHintLabel: 'Fragmento 4/4 para la Cámara Secreta',
     },
@@ -307,7 +307,7 @@ export const SECRET_CHAMBER_RELIC = {
     ciclo2:
       '¡Lo habéis conseguido en equipo! Al unir los cuatro fragmentos de la Gran Pintadera habéis demostrado que Gran Canaria brilla cuando cuidamos su historia, su naturaleza, el agua y nos escuchamos con respeto.',
     ciclo3:
-      '¡Enigma entre épocas completado! La Gran Pintadera de Tamarán reúne la cooperación canarii, el pensamiento crítico ante las fuentes, la calma frente a los bulos y la sostenibilidad hídrica de la Agenda 2030. El Cuaderno del Tiempo queda ahora en vuestras manos para seguir escribiendo una isla más justa.',
+      '¡Enigma entre épocas completado! La Gran Pintadera de Gran Canaria reúne la cooperación canarii, el pensamiento crítico ante las fuentes, la calma frente a los bulos y la sostenibilidad hídrica de la Agenda 2030. El Cuaderno del Tiempo queda ahora en vuestras manos para seguir escribiendo una isla más justa.',
   },
   cooperativePrompt:
     'Reto final de equipo: cada integrante del grupo explica en una frase qué pieza de su época ayudó a abrir la Cámara Secreta.',

@@ -1510,7 +1510,7 @@ export default function App() {
               },
             }));
             triggerCelebration(
-              '¡Cámara Secreta abierta · Gran Pintadera de Tamarán restaurada!'
+              '¡Cámara Secreta abierta · Gran Pintadera de Gran Canaria restaurada!'
             );
           }}
           onClose={() => {

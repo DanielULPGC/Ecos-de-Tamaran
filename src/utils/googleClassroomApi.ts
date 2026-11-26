@@ -417,7 +417,7 @@ export function buildDidacticMaterialDraft(state: ExpeditionState): {
 export function buildProgressAnnouncementDraft(state: ExpeditionState): string {
   const diff = getDifficultyProfile(state.cycle);
   const explorer = getExplorerById(state.explorerId);
-  const team = state.explorerName.trim() || 'Equipo Explorador de Tamarán';
+  const team = state.explorerName.trim() || 'Equipo Explorador de Gran Canaria';
   const totalSeals = ROOMS_DATA.reduce((sum, room) => {
     const p = state.progress[room.id];
     return (

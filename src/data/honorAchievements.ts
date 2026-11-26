@@ -79,7 +79,7 @@ export const HONOR_ACHIEVEMENTS: HonorAchievementDefinition[] = [
   },
   {
     id: 'cronista-tamaran',
-    title: 'Crónica de Tamarán',
+    title: 'Crónica de Gran Canaria',
     description:
       'Redacta reflexiones personales detalladas (más de 40 caracteres) en al menos 2 páginas de tu Diario.',
     hidden: false,

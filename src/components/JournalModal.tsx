@@ -126,7 +126,7 @@ export const JournalModal: React.FC<JournalModalProps> = ({
             <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#526071]">
               <BookMarked className="h-4 w-4 text-[#1D4E89]" aria-hidden="true" />
               <span>
-                {state.explorerName.trim() || 'Equipo Explorador de Tamarán'}
+                {state.explorerName.trim() || 'Equipo Explorador de Gran Canaria'}
               </span>
               <span aria-hidden="true">·</span>
               <span>{cycle === 'ciclo2' ? '2.º Ciclo' : '3.º Ciclo'}</span>

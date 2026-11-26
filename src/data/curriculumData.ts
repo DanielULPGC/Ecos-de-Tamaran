@@ -268,6 +268,7 @@ export const TEACHER_CURRICULUM_BY_ROOM: TeacherRoomCurriculum[] = [
     preguntasAsamblea: [
       '¿Qué palabras, alimentos o costumbres de los antiguos canarios seguimos usando hoy en Gran Canaria?',
       'Cuando en clase falta un material que necesitamos todos, ¿cómo podemos repartirlo con justicia sin dejar a nadie fuera?',
+      '¿Sabías que los antiguos canarios nunca llamaron «Tamarán» a la isla (es un nombre inventado en el siglo XIX)? ¿Cómo podemos comprobar si un dato histórico es real o un mito moderno?',
     ],
   },
   {
@@ -560,10 +561,10 @@ export const TEACHER_CURRICULUM_BY_ROOM: TeacherRoomCurriculum[] = [
 export const SCIENTIFIC_PRECISION_NOTES: ScientificPrecisionNote[] = [
   {
     id: 'tamaran-canarii',
-    topic: '«Tamarán» y «canarii»',
-    roomRef: 'Sala 1 · Época Aborigen',
+    topic: '«Tamarán» (mito historiográfico) y «canarii»',
+    roomRef: 'Título de la aventura · Sala 1 (Época Aborigen)',
     clarification:
-      '«Tamarán» se emplea como recurso literario y divulgativo tradicional; la filología actual señala que probablemente designaba un palmeral o lugar concreto y no a toda la isla. Igualmente, «canarii» procede de fuentes latinas (Plinio) y convive en la historiografía actual con «antiguos canarios» o población amazigh de Gran Canaria.',
+      '«Tamarán» se conserva en el título únicamente como recurso literario y divulgativo contemporáneo, pero NO es un nombre aborigen documentado de Gran Canaria (en las fuentes históricas antiguas la isla aparece como Canaria o Gran Canaria). Como demostró Maximiano Trapero (ULPGC, Anuario de Estudios Atlánticos, 2015), se trata de un falso guanchismo y mito historiográfico introducido en 1844 por Manuel de Ossuna y Saviñón (como «Tamerán») y popularizado después por Agustín Millares Torres. Se aprovecha en el aula para trabajar el pensamiento crítico frente a mitos históricos. Igualmente, «canarii» procede de fuentes latinas (Plinio el Viejo) y convive en la historiografía actual con «antiguos canarios» o población amazigh de Gran Canaria.',
   },
   {
     id: 'cronologia-pintaderas',

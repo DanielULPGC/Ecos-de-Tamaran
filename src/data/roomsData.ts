@@ -1387,7 +1387,7 @@ export const ROOMS_DATA: RoomData[] = [
         },
       ],
       reflectionPrompt: {
-        ciclo2: 'Elige o escribe tu mensaje final del Cuaderno de Tamarán:',
+        ciclo2: 'Elige o escribe tu mensaje final del Cuaderno del Tiempo:',
         ciclo3: 'Cierra tu diario: ¿cómo te ayudan la historia y la empatía en tu día a día?',
       },
       guidedStarters: [

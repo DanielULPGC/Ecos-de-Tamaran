@@ -14,7 +14,7 @@ export const EXPLORERS: ExplorerProfile[] = [
   {
     id: 'nayra',
     name: 'Nayra',
-    role: 'Rastreadora de Tamarán',
+    role: 'Rastreadora de Gran Canaria',
     powerName: 'Lupa Arqueológica',
     powerShort: 'Pista visual gratis al instante',
     powerDetail:
@@ -340,7 +340,7 @@ export const BADGES: BadgeDefinition[] = [
   },
   {
     id: 'guardian-tamaran',
-    title: 'Vigía de Tamarán',
+    title: 'Vigía de Gran Canaria',
     subtitle: 'Ilumina las 4 zonas de Gran Canaria',
     kind: 'attitude',
     requirementDetail:

@@ -208,6 +208,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
             <p className="mt-1 font-display text-lg italic text-[#E6C58D] sm:text-xl">
               Escape Room histórico y emocional · El Cuaderno del Tiempo
             </p>
+            <p className="mt-1.5 text-xs leading-snug text-[#D6D3CD]/90">
+              Nota de rigor: «Tamarán» es un título literario moderno (siglo XIX), no un nombre aborigen documentado de Gran Canaria.
+            </p>
           </div>
 
           {/* Interactive Character & Cycle Setup Panel */}

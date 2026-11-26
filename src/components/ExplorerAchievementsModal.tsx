@@ -145,7 +145,7 @@ function getNavigationForBadge(
 
 function getExplorerRankLabel(unlockedCount: number, total: number): string {
   const ratio = unlockedCount / Math.max(1, total);
-  if (ratio >= 0.9) return 'Leyenda de Tamarán';
+  if (ratio >= 0.9) return 'Leyenda de Gran Canaria';
   if (ratio >= 0.65) return 'Vigía de Gran Canaria';
   if (ratio >= 0.35) return 'Cronista en Ruta';
   if (unlockedCount >= 1) return 'Rastreador en Marcha';

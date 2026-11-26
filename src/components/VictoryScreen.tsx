@@ -130,7 +130,7 @@ export const VictoryScreen: React.FC<VictoryScreenProps> = ({
                   )}
                 </div>
                 <h1 className="mt-1 font-display text-2xl font-bold text-[#171B21] sm:text-4xl">
-                  Diploma de Escape · Tamarán
+                  Diploma de Escape · Gran Canaria
                 </h1>
                 <p className="mt-1 text-xs sm:text-sm text-[#3E4856]">
                   Explorador guía: <strong>{explorer.name}</strong> ({explorer.powerName}) · {cycleLabel}

@@ -89,7 +89,7 @@ function computeExplorerRank(state: ExpeditionState) {
   if (completedRooms >= 2 || totalPoints >= 14) {
     return {
       level: 3,
-      title: 'Cronista de Tamarán',
+      title: 'Cronista de Gran Canaria',
       completedRooms,
       totalPoints,
     };

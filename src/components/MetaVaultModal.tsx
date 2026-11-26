@@ -204,7 +204,7 @@ export const MetaVaultModal: React.FC<MetaVaultModalProps> = ({
                 viewBox="0 0 200 200"
                 className="h-44 w-44 drop-shadow-[0_0_20px_rgba(230,169,79,0.22)]"
                 role="img"
-                aria-label={`Gran Pintadera de Tamarán: ${collectedRooms.length} de 4 fragmentos reunidos`}
+                aria-label={`Gran Pintadera de Gran Canaria: ${collectedRooms.length} de 4 fragmentos reunidos`}
               >
                 <circle
                   cx="100"
@@ -307,7 +307,7 @@ export const MetaVaultModal: React.FC<MetaVaultModalProps> = ({
               <p className="text-xs sm:text-sm leading-relaxed text-[#E2DDD2]">
                 Cada época esconde un cuadrante de la{' '}
                 <strong className="text-[#F3C876]">
-                  Gran Pintadera de Tamarán
+                  Gran Pintadera de Gran Canaria
                 </strong>
                 . Reúne los 4 fragmentos abriendo cada cerrojo de salida o
                 usando la <strong>Linterna de inspección</strong> en las salas.

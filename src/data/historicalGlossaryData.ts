@@ -339,4 +339,21 @@ export const HISTORICAL_GLOSSARY_ENTRIES: HistoricalGlossaryEntry[] = [
     oneLineSummary: 'Conjunto de 100 años usado para medir la historia.',
     relatedIds: ['cronologia', 'fuente-historica'],
   },
+  {
+    id: 'tamaran',
+    term: 'Tamarán (mito historiográfico)',
+    letter: 'T',
+    theme: 'Conceptos clave',
+    definition: {
+      ciclo2:
+        'Nombre literario moderno con el que muchas personas llaman hoy con cariño a Gran Canaria, pero que NO usaban los antiguos canarios. En realidad se inventó en un libro en 1844 (siglo XIX) y después se hizo muy famoso.',
+      ciclo3:
+        'Falso guanchismo y mito historiográfico popularizado como supuesto nombre aborigen de Gran Canaria. La investigación filológica (Maximiano Trapero, ULPGC) demostró que no aparece en ninguna crónica antigua: surgió en 1844 en una obra de Manuel de Ossuna y Saviñón y se difundió luego en el siglo XIX. En este juego se mantiene en el título solo como recurso literario para entrenar el pensamiento crítico ante las fuentes.',
+    },
+    inGranCanaria:
+      'En las fuentes históricas antiguas la isla se llamaba sencillamente Canaria o Gran Canaria; nombres como Telde, Gáldar, Arucas o Agüimes sí son auténticos topónimos aborígenes.',
+    oneLineSummary:
+      'Nombre poético moderno de Gran Canaria inventado en 1844 (no es aborigen).',
+    relatedIds: ['fuente-historica', 'aborigen', 'canarismo'],
+  },
 ];
